@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "@wdio/logger": "^9.29.1",
-    "@zip.js/zip.js": "^2.16.0",
+    "@zip.js/zip.js": "^2.18.2",
     "decamelize": "^6.0.1",
     "edge-paths": "^3.0.5",
     "http-proxy-agent": "^9.1.0",
