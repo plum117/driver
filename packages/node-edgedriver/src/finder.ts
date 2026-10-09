@@ -1,10 +1,9 @@
-/* istanbul ignore file */
-
 /**
  * @license Copyright 2016 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
+import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { execSync } from 'node:child_process'
@@ -41,7 +40,6 @@ const darwinGetInstallations = (appPaths: string[], suffixes: string[]) => {
     return installations
 }
 
-const newLineRegex = /\r?\n/
 const EDGE_BINARY_NAMES = ['edge', 'msedge', 'microsoft-edge', 'microsoft-edge-stable', 'microsoft-edge-beta', 'microsoft-edge-dev']
 const EDGE_REGEX = /((ms|microsoft))?-?edge-?((stable|dev|beta))?/g
 
@@ -124,29 +122,46 @@ function win32() {
     return installations
 }
 
-function findEdgeExecutables(folder: string) {
-    const argumentsRegex = /(^[^ ]+).*/ // Take everything up to the first space
-    // e.g. `Exec=/usr/bin/microsoft-edge-stable %U`
-    const edgeExecRegex = '^Exec=/.*/(microsoft-edge|msedge)'
+// e.g. `Exec=/usr/bin/microsoft-edge-stable %U`: the binary is the first word of the value
+const EXEC_LINE_REGEX = /^Exec=(\/\S+)/gm
+const EDGE_BINARY_NAME_REGEX = /^(microsoft-edge|msedge)/
 
-    const installations: string[] = []
-    if (hasAccessSync(folder)) {
-        let execPaths
-
-        // Some systems do not support grep -R so fallback to -r.
-        // See https://github.com/GoogleChrome/chrome-launcher/issues/46 for more context.
-        try {
-            execPaths = execSync(
-                `grep -ER "${edgeExecRegex}" ${folder} | awk -F '=' '{print $2}'`, { stdio: 'pipe' })
-        } catch {
-            execPaths = execSync(
-                `grep -Er "${edgeExecRegex}" ${folder} | awk -F '=' '{print $2}'`, { stdio: 'pipe' })
+/**
+ * `*.desktop` files under `dir`, skipping folders that can't be read: one unreadable
+ * subfolder must not stop the search (a recursive `readdirSync` throws on the first one)
+ */
+function listDesktopFiles(dir: string): string[] {
+    let entries: fs.Dirent[]
+    try {
+        entries = fs.readdirSync(dir, { withFileTypes: true })
+    } catch {
+        return []
+    }
+    return entries.flatMap((entry) => {
+        const entryPath = path.join(dir, entry.name)
+        if (entry.isDirectory()) {
+            return listDesktopFiles(entryPath)
         }
+        return entry.name.endsWith('.desktop') && (entry.isFile() || entry.isSymbolicLink()) ? [entryPath] : []
+    })
+}
 
-        execPaths = execPaths.toString().split(newLineRegex).map(
-            (execPath) => execPath.replace(argumentsRegex, '$1'))
+function findEdgeExecutables(folder: string) {
+    const installations: string[] = []
 
-        execPaths.forEach((execPath) => hasAccessSync(execPath) && installations.push(execPath))
+    // read the files directly: a shell `grep ... ${folder}` broke on a home folder with a space
+    for (const desktopFile of listDesktopFiles(folder)) {
+        let content: string
+        try {
+            content = fs.readFileSync(desktopFile, 'utf8')
+        } catch {
+            continue
+        }
+        for (const [, execPath] of content.matchAll(EXEC_LINE_REGEX)) {
+            if (EDGE_BINARY_NAME_REGEX.test(path.basename(execPath)) && hasAccessSync(execPath)) {
+                installations.push(execPath)
+            }
+        }
     }
 
     return installations
