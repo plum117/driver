@@ -3,7 +3,7 @@ Geckodriver [![CI](https://github.com/webdriverio/driver/actions/workflows/ci.ym
 
 An npm wrapper for Mozilla's [Geckodriver](https://github.com/mozilla/geckodriver). It manages to download various (or the latest) Geckodriver versions and provides a programmatic interface to start and stop it within Node.js. __Note:__ this is a wrapper module. If you discover any bugs with Geckodriver, please report them in the [official repository](https://github.com/mozilla/geckodriver).
 
-__Requirements:__ Node.js 22.19.0 or newer. With WebdriverIO 9, use `geckodriver@6`. See [Compatibility](https://github.com/webdriverio/driver#compatibility).
+__Requirements:__ Node.js 22.19.0 or newer. With Yarn and without WebdriverIO, also install `@wdio/logger`. See [Compatibility](https://github.com/webdriverio/driver#compatibility).
 
 # Installing
 

@@ -20,17 +20,17 @@ WebdriverIO installs the driver packages it needs through `@wdio/utils`. If you 
 
 | Driver release | `geckodriver` | `edgedriver` | `safaridriver` | Node.js | `@wdio/logger` | Used by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Current | 8.x | 8.x | 3.x | 22.19.0 or newer | 10 | WebdriverIO 10 |
-| Previous | 7.x | 7.x | 2.x | 20 or newer | 9 | First WebdriverIO 10 releases |
-| Older | 6.x | 6.x | 1.x | 20 or newer (`safaridriver`: 18) | 9 | WebdriverIO 9 |
+| Current | 8.x | 8.x | 3.x | 22.19.0 or newer | 9 or 10, peer dependency | WebdriverIO 10 |
+| Previous | 7.x | 7.x | 2.x | 20 or newer | 9, dependency | First WebdriverIO 10 releases |
+| Older | 6.x | 6.x | 1.x | 20 or newer (`safaridriver`: 18) | 9, dependency | WebdriverIO 9 |
 
-Use the driver release that has the same `@wdio/logger` major as your WebdriverIO. With two logger copies, the second one empties the WebdriverIO log file (`outputDir`).
+From geckodriver 8 and edgedriver 8, `@wdio/logger` is a peer dependency, so the drivers use the logger of your WebdriverIO install. A second copy of the logger empties the WebdriverIO log file (`outputDir`).
 
 ### Upgrading to geckodriver 8, edgedriver 8 and safaridriver 3
 
 - Use Node.js 22.19.0 or newer.
+- If you use `geckodriver` or `edgedriver` without WebdriverIO and install with Yarn, add `@wdio/logger` to your dependencies. npm and pnpm install it for you.
 - The API, the CLI, the options and the environment variables did not change.
-- With WebdriverIO 9, stay on geckodriver 6, edgedriver 6 and safaridriver 1.
 
 ---
 
