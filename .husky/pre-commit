@@ -1,1 +1,1 @@
-pnpm run test:lint
+git diff --cached --name-only --diff-filter=d -z -- '*.js' '*.cjs' '*.mjs' '*.jsx' '*.ts' '*.cts' '*.mts' '*.tsx' | xargs -0 -r node_modules/.bin/oxlint

@@ -56,9 +56,9 @@ the [verify-driver](.agents/skills/verify-driver/SKILL.md) skill before you
 call the work done.
 
 Lint is oxlint ([`.oxlintrc.json`](.oxlintrc.json)), not eslint —
-`@stylistic/eslint-plugin` is only pulled in as an oxlint plugin. Husky runs
-`test:lint` pre-commit and `pnpm test` pre-push; don't bypass either with
-`--no-verify`.
+`@stylistic/eslint-plugin` is only pulled in as an oxlint plugin. Husky lints the
+staged JS/TS files pre-commit and runs `pnpm test` pre-push; don't bypass
+either with `--no-verify`.
 
 ## Do not hand-edit
 
