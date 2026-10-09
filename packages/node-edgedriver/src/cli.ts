@@ -12,7 +12,8 @@ export default async function run () {
     const child = cp.spawn(binaryFilePath, process.argv.slice(2))
     child.stdout.pipe(process.stdout)
     child.stderr.pipe(process.stderr)
-    child.on('exit', process.exit)
+    // a signal kill gives `code` null, and process.exit(null) would report success
+    child.on('exit', (code) => process.exit(code ?? 1))
     process.on('SIGTERM', function() {
         child.kill('SIGTERM')
         process.exit(1)
