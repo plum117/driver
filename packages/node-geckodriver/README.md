@@ -19,13 +19,16 @@ Or install it globally:
 npm install -g geckodriver
 ```
 
-__Note:__ This installs a `geckodriver` shell script that runs the executable, but on Windows, [`selenium-webdriver`](https://www.npmjs.com/package/selenium-webdriver) looks for `geckodriver.exe`. The package downloads the binary into its cache folder (`GECKODRIVER_CACHE_DIR`, by default the system temporary folder) as `geckodriver-<version>.exe`, not into the package folder. Set the cache folder, run the driver once, then copy the binary to a folder on your `PATH` (such as the npm bin directory):
+__Note:__ This installs a `geckodriver` shell script that runs the executable, but on Windows, [`selenium-webdriver`](https://www.npmjs.com/package/selenium-webdriver) looks for `geckodriver.exe`. The package downloads the binary into its cache folder (`GECKODRIVER_CACHE_DIR`, by default the system temporary folder) as `geckodriver-<version>.exe`, not into the package folder. Set the cache folder and the version, run the driver once, then copy the binary to a folder on your `PATH` (such as the npm bin directory):
 
 ```cmd
 set GECKODRIVER_CACHE_DIR=%USERPROFILE%\geckodriver
+set GECKODRIVER_VERSION=0.37.1
 geckodriver --version
-copy %GECKODRIVER_CACHE_DIR%\geckodriver-*.exe %APPDATA%\npm\geckodriver.exe
+copy /Y %GECKODRIVER_CACHE_DIR%\geckodriver-%GECKODRIVER_VERSION%.exe %APPDATA%\npm\geckodriver.exe
 ```
+
+Name the exact version: with a wildcard, `copy` joins all cached versions into one broken file.
 
 Once installed you can start Geckodriver via:
 
