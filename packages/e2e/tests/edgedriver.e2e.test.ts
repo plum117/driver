@@ -1,10 +1,10 @@
 import waitPort from 'wait-port'
-import { execSync } from 'node:child_process'
+import { execFileSync, execSync } from 'node:child_process'
 import { remote } from 'webdriverio'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
-import { beforeEach, afterEach, describe, it } from 'vitest'
+import { beforeEach, afterEach, describe, expect, it } from 'vitest'
 
 import { start, download, findEdgePath } from 'edgedriver'
 
@@ -100,22 +100,10 @@ describe('Edgedriver E2E Tests', () => {
         await browser.deleteSession()
     })
 
-    it('start with missing architecture', async () => {
+    it('download with missing architecture', async () => {
         const binary = await download('152.0.4191.77', cacheDir)
 
-        const browser = await remote({
-            automationProtocol: 'webdriver',
-            capabilities: {
-                browserName: 'edge',
-                'ms:edgeOptions': {
-                    args: ['no-sandbox', 'headless']
-                },
-                'wdio:edgedriverOptions': {
-                    binary
-                }
-            }
-        })
-        await browser.url('https://guinea-pig.webdriver.io/')
-        await browser.deleteSession()
+        // check the driver binary, not a session: a pinned driver can't drive the runner's newer Edge
+        expect(execFileSync(binary, ['--version']).toString()).toMatch(/Microsoft Edge WebDriver 152\./)
     })
 })
