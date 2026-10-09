@@ -86,19 +86,24 @@ async function downloadDriver(version: string) {
     }
 }
 
-async function getEdgeVersionWin (edgePath: string) {
+export async function getEdgeVersionWin (edgePath: string) {
     const versionPath = path.dirname(edgePath)
     const contents = await fsp.readdir(versionPath)
     const versions = contents.filter((p) => /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/g.test(p))
 
-    // returning oldest in case there is an updated version and Edge still hasn't relaunched
-    const oldest = versions.sort((a, b) => a > b ? 1 : -1)[0]
+    // returning oldest in case there is an updated version and Edge still hasn't relaunched;
+    // compare part by part as numbers: as text, '154.0.4258.62' sorts before '154.0.4258.9'
+    const oldest = versions.sort((a, b) => {
+        const [x, y] = [a.split('.').map(Number), b.split('.').map(Number)]
+        return x.map((part, i) => part - y[i]).find((diff) => diff !== 0) ?? 0
+    })[0]
     return oldest
 }
 
-async function getEdgeVersionUnix (edgePath: string) {
+export async function getEdgeVersionUnix (edgePath: string) {
     log.info(`Trying to detect Microsoft Edge version from binary found at ${edgePath}`)
-    const versionOutput = await new Promise<string>((resolve, reject) => cp.exec(`"${edgePath}" --version`, (err, stdout, stderr) => {
+    // execFile, not exec: no shell, so quotes or `$(...)` in the path stay literal
+    const versionOutput = await new Promise<string>((resolve, reject) => cp.execFile(edgePath, ['--version'], (err, stdout, stderr) => {
         if (err) {
             return reject(err)
         }
