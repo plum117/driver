@@ -14,6 +14,26 @@ This monorepo contains Node.js wrappers for managing browser driver binaries ([G
 
 ---
 
+## Compatibility
+
+WebdriverIO installs the driver packages it needs through `@wdio/utils`. If you only use WebdriverIO, you do not install them yourself.
+
+| Driver release | `geckodriver` | `edgedriver` | `safaridriver` | Node.js | `@wdio/logger` | Used by |
+| --- | --- | --- | --- | --- | --- | --- |
+| Current | 8.x | 8.x | 3.x | 22.19.0 or newer | 10 | WebdriverIO 10 |
+| Previous | 7.x | 7.x | 2.x | 20 or newer | 9 | First WebdriverIO 10 releases |
+| Older | 6.x | 6.x | 1.x | 20 or newer (`safaridriver`: 18) | 9 | WebdriverIO 9 |
+
+Use the driver release that has the same `@wdio/logger` major as your WebdriverIO. With two logger copies, the second one empties the WebdriverIO log file (`outputDir`).
+
+### Upgrading to geckodriver 8, edgedriver 8 and safaridriver 3
+
+- Use Node.js 22.19.0 or newer.
+- The API, the CLI, the options and the environment variables did not change.
+- With WebdriverIO 9, stay on geckodriver 6, edgedriver 6 and safaridriver 1.
+
+---
+
 ## Installation
 
 Install the driver package needed for your target browser:
