@@ -9,8 +9,6 @@ import os from 'node:os'
 import path from 'node:path'
 import { execSync } from 'node:child_process'
 
-import { getEdgePath } from 'edge-paths'
-
 import { sort, findByWhich, hasAccessSync, uniq } from './utils.js'
 
 interface ApplicationDataType {
@@ -116,24 +114,12 @@ function win32() {
         process.env.LOCALAPPDATA || '', process.env.PROGRAMFILES || '', process.env['PROGRAMFILES(X86)'] || ''
     ].filter(Boolean)
 
-    const checkedPath: string[] = []
     prefixes.forEach(prefix => suffixes.forEach(suffix => {
         const edgePath = path.join(prefix, suffix)
-        checkedPath.push(edgePath)
         if (hasAccessSync(edgePath)) {
             installations.push(edgePath)
         }
     }))
-
-    /**
-     * fallback using edge-path
-     */
-    if (installations.length === 0) {
-        const edgePath = getEdgePath()
-        if (hasAccessSync(edgePath)) {
-            installations.push(edgePath)
-        }
-    }
 
     return installations
 }
