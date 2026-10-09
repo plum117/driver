@@ -61,6 +61,26 @@ export async function retryFetch(url: string, opts: RequestInit = {}, retry = 3)
     throw new Error('Failed to fetch after retries')
 }
 
+/**
+ * fetch rejects a URL with `user:pass@`: move the credentials of `GECKODRIVER_CDNURL` into an
+ * Authorization header. The returned `url` has none, so it is the one to log.
+ */
+export function extractBasicAuthFromUrl(urlString: string): { url: string, authHeader?: string } {
+    try {
+        const url = new URL(urlString)
+        if (url.username || url.password) {
+            // URL keeps them percent-encoded (`p%40ss`); the header needs the real `p@ss`
+            const credentials = Buffer.from(`${decodeURIComponent(url.username)}:${decodeURIComponent(url.password)}`).toString('base64')
+            url.username = ''
+            url.password = ''
+            return { url: url.toString(), authHeader: `Basic ${credentials}` }
+        }
+    } catch {
+        // not a valid URL: let fetch report it
+    }
+    return { url: urlString }
+}
+
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
