@@ -2,7 +2,7 @@
 import cp from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import { vi, test, expect } from 'vitest'
-import { type GeckodriverParameters, start } from '../src/index.ts'
+import { type GeckodriverParameters, start } from '../src/index.js'
 import { download } from '../src/install.js'
 
 vi.mock('../src/install.js', () =>  {

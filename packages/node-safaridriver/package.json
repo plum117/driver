@@ -44,6 +44,7 @@
         "clean": "rimraf ./dist ./tsconfig.tsbuildinfo",
         "test": "run-s test:*",
         "test:lint": "oxlint .",
+        "test:typecheck": "tsc -p tsconfig.test.json",
         "test:unit": "vitest run",
         "test:interop": "node ./tests/interop/cjs.test.js",
         "watch": "pnpm run build -- --watch"
