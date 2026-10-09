@@ -9,8 +9,6 @@ import os from 'node:os'
 import path from 'node:path'
 import { execSync } from 'node:child_process'
 
-import { getEdgePath } from 'edge-paths'
-
 import { sort, findByWhich, hasAccessSync, uniq } from './utils.js'
 
 interface ApplicationDataType {
@@ -124,16 +122,6 @@ function win32() {
             installations.push(edgePath)
         }
     }))
-
-    /**
-     * fallback using edge-path
-     */
-    if (installations.length === 0) {
-        const edgePath = getEdgePath()
-        if (hasAccessSync(edgePath)) {
-            installations.push(edgePath)
-        }
-    }
 
     return installations
 }
