@@ -29,7 +29,8 @@ jobs:
         cache: 'pnpm'
 
     - name: pnpm install
-      run: pnpm install
+      # audit the committed lockfile, and fail when it is out of date
+      run: pnpm install --frozen-lockfile
 
     - name: Build
       run: pnpm run build
