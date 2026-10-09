@@ -89,6 +89,7 @@ By default, binaries download when initialized via CLI or API. To download them 
 * **Custom Driver Version:**
 * `GECKODRIVER_VERSION="0.31.0"`
 * `EDGEDRIVER_VERSION="114.0.1823.18"`
+* `EDGE_BINARY_PATH=/path/to/msedge`: the Edge binary whose version selects the Edgedriver download when `EDGEDRIVER_VERSION` is not set. `findEdgePath()` returns it.
 
 
 * **Custom CDN URL:**
@@ -96,7 +97,7 @@ By default, binaries download when initialized via CLI or API. To download them 
 * `EDGEDRIVER_CDNURL=https://INTERNAL_CDN/edgedriver/download`
 
 
-* **CDN credentials:** a CDN URL can carry them, for example `https://user:password@INTERNAL_CDN`. They are sent as a Basic `Authorization` header and kept out of the logs; percent-encode special characters (`@` is `%40`). Use `https://`: over `http://`, Basic credentials travel in clear text. A redirect to another host does not receive them.
+* **CDN credentials:** a CDN URL can carry them, for example `https://user:password@INTERNAL_CDN`. They are sent as a Basic `Authorization` header and kept out of the logs; percent-encode special characters (`@` is `%40`, `%` is `%25`). Use `https://`: over `http://`, Basic credentials travel in clear text. A redirect to another host does not receive them.
 
 * **HTTP/HTTPS Proxy:** `HTTPS_PROXY` and `HTTP_PROXY` apply to downloads, and `NO_PROXY` lists the hosts that skip the proxy. The lower-case forms work too and win over the upper-case ones.
 

@@ -61,11 +61,15 @@ GECKODRIVER_CDNURL=https://INTERNAL_CDN/geckodriver/download
 
 Binaries on your CDN should be located in a subdirectory of the above base URL. For example, `/vxx.xx.xx/*.tar.gz` should be located under `/geckodriver/download` above.
 
-Alternatively, you can add the same property to your .npmrc file.
+Alternatively, add it to your [`.npmrc`](https://docs.npmjs.com/cli/configuring-npm/npmrc) file:
+
+```
+geckodriver_cdnurl=https://INTERNAL_CDN/geckodriver/download
+```
 
 The default location is set to https://github.com/mozilla/geckodriver/releases/download
 
-A CDN URL can carry credentials, for example `https://user:password@INTERNAL_CDN`: they are sent as a Basic `Authorization` header and kept out of the logs. Percent-encode special characters in them (`@` is `%40`). Use an `https://` URL: over `http://`, Basic credentials travel in clear text. A redirect to another host does not receive them.
+A CDN URL can carry credentials, for example `https://user:password@INTERNAL_CDN`: they are sent as a Basic `Authorization` header and kept out of the logs. Percent-encode special characters in them (`@` is `%40`, `%` is `%25`). Use an `https://` URL: over `http://`, Basic credentials travel in clear text. A redirect to another host does not receive them.
 
 ## Setting a PROXY URL
 
