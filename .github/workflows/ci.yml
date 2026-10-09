@@ -52,5 +52,15 @@ jobs:
       - name: 🧪 Run Tests
         run: pnpm test
 
+      - name: 🔥 Warm browser files
+        # A new Ubuntu runner reads Edge (~650 MB) and Firefox (~300 MB) from a cold disk the first
+        # time, which made the first e2e session take up to ~50s of its 60s timeout. Read them once here.
+        if: runner.os == 'Linux'
+        run: |
+          for browser in microsoft-edge firefox; do
+            dir=$(dirname "$(readlink -f "$(command -v "$browser")")")
+            find "$dir" -type f -exec cat {} + > /dev/null
+          done
+
       - name: 🧪 Run E2E Tests
         run: pnpm run test:e2e
