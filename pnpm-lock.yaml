@@ -240,12 +240,9 @@ importers:
       edge-paths:
         specifier: ^3.0.5
         version: 3.0.5
-      http-proxy-agent:
-        specifier: ^9.1.0
-        version: 9.1.0(supports-color@7.2.0)
-      https-proxy-agent:
-        specifier: ^9.1.0
-        version: 9.1.0(supports-color@7.2.0)
+      undici:
+        specifier: ^8.11.2
+        version: 8.11.2
     devDependencies:
       '@wdio/logger':
         specifier: ^10.0.0
@@ -259,15 +256,12 @@ importers:
       decamelize:
         specifier: ^6.0.1
         version: 6.0.1
-      http-proxy-agent:
-        specifier: ^9.1.0
-        version: 9.1.0(supports-color@7.2.0)
-      https-proxy-agent:
-        specifier: ^9.1.0
-        version: 9.1.0(supports-color@7.2.0)
       modern-tar:
         specifier: ^0.8.5
         version: 0.8.5
+      undici:
+        specifier: ^8.11.2
+        version: 8.11.2
     devDependencies:
       '@wdio/logger':
         specifier: ^10.0.0

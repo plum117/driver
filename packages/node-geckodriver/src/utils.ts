@@ -3,6 +3,7 @@ import util from 'node:util'
 import fs from 'node:fs/promises'
 
 import decamelize from 'decamelize'
+import { fetch, type RequestInit, type Response } from 'undici'
 
 import { GECKODRIVER_DOWNLOAD_PATH } from './constants.js'
 import type { GeckodriverParameters } from './types.js'

@@ -1,5 +1,3 @@
-import type { Agent as HttpAgent } from 'node:http'
-import type { Agent as HttpsAgent } from 'node:https'
 import os from 'node:os'
 import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
@@ -7,8 +5,7 @@ import fsp, { writeFile } from 'node:fs/promises'
 import zlib from 'node:zlib'
 
 import logger from '@wdio/logger'
-import { HttpsProxyAgent } from 'https-proxy-agent'
-import { HttpProxyAgent } from 'http-proxy-agent'
+import { EnvHttpProxyAgent, type RequestInit } from 'undici'
 import { unpackTar } from 'modern-tar/fs'
 import { BlobReader, BlobWriter, ZipReader, type FileEntry } from '@zip.js/zip.js'
 
@@ -17,14 +14,8 @@ import { hasAccess, getDownloadUrl, retryFetch } from './utils.js'
 
 const log = logger('geckodriver')
 
-const fetchOpts: RequestInit & {
-    agent?: HttpAgent | HttpsAgent | InstanceType<typeof HttpsProxyAgent> | InstanceType<typeof HttpProxyAgent>
-} = {}
-if (process.env.HTTPS_PROXY) {
-    fetchOpts.agent = new HttpsProxyAgent(process.env.HTTPS_PROXY)
-} else if (process.env.HTTP_PROXY) {
-    fetchOpts.agent = new HttpProxyAgent(process.env.HTTP_PROXY)
-}
+// reads HTTPS_PROXY / HTTP_PROXY / NO_PROXY (and their lower-case forms); retryFetch uses undici's own fetch
+const fetchOpts: RequestInit = { dispatcher: new EnvHttpProxyAgent() }
 
 // Only allow characters that are safe as a filename segment.
 // Rejects path separators (/ \) and any traversal sequences.

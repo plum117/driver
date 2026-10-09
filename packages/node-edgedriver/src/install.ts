@@ -5,8 +5,7 @@ import cp from 'node:child_process'
 import { format } from 'node:util'
 
 import { BlobReader, BlobWriter, ZipReader, type FileEntry } from '@zip.js/zip.js'
-import { HttpsProxyAgent } from 'https-proxy-agent'
-import { HttpProxyAgent } from 'http-proxy-agent'
+import { EnvHttpProxyAgent, fetch, type RequestInit } from 'undici'
 
 import findEdgePath from './finder.js'
 import { TAGGED_VERSIONS, EDGE_PRODUCTS_API, TAGGED_VERSION_URL, LATEST_RELEASE_URL, DOWNLOAD_URL, BINARY_FILE, log } from './constants.js'
@@ -21,17 +20,9 @@ interface ProductAPIResponse {
     }[]
 }
 
-// Extend RequestInit to include the agent property that Node.js built-in fetch supports
-interface NodeRequestInit extends RequestInit {
-    agent?: HttpsProxyAgent<string> | HttpProxyAgent<string>
-}
-
-const fetchOpts: NodeRequestInit = {}
-if (process.env.HTTPS_PROXY) {
-    fetchOpts.agent = new HttpsProxyAgent(process.env.HTTPS_PROXY)
-} else if (process.env.HTTP_PROXY) {
-    fetchOpts.agent = new HttpProxyAgent(process.env.HTTP_PROXY)
-}
+// undici's own fetch: Node's built-in fetch ignores `agent`, and its bundled undici differs per Node version.
+// The agent reads HTTPS_PROXY / HTTP_PROXY / NO_PROXY (and their lower-case forms).
+const fetchOpts: RequestInit = { dispatcher: new EnvHttpProxyAgent() }
 
 export async function download (
     edgeVersion: string | undefined = process.env.EDGEDRIVER_VERSION,
@@ -72,7 +63,7 @@ async function downloadDriver(version: string) {
         const rawDownloadUrl = format(DOWNLOAD_URL, version, getNameByArchitecture())
         const { url: downloadUrl, authHeader } = extractBasicAuthFromUrl(rawDownloadUrl)
         log.info(`Downloading Edgedriver from ${downloadUrl}`)
-        const opts: NodeRequestInit = { ...fetchOpts }
+        const opts: RequestInit = { ...fetchOpts }
         if (authHeader) {
             opts.headers = { ...opts.headers, Authorization: authHeader }
         }

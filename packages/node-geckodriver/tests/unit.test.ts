@@ -2,6 +2,8 @@ import os from 'node:os'
 import path from 'node:path'
 import fsp from 'node:fs/promises'
 import { vi, test, expect, describe, beforeEach, afterEach } from 'vitest'
+import { EnvHttpProxyAgent } from 'undici'
+import type * as Undici from 'undici'
 
 import { getDownloadUrl, parseParams, retryFetch } from '../src/utils.js'
 import { getBinaryFilename, download } from '../src/install.js'
@@ -55,14 +57,11 @@ vi.mock('@zip.js/zip.js', () => ({
     },
 }))
 
-vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-    status: 400,
-    text: () => Promise.resolve('foobar'),
-    json: () => Promise.resolve({ foo: 'bar' })
-}))
+const mockFetch = vi.hoisted(() => vi.fn())
+vi.mock('undici', async (original) => ({ ...(await original<typeof Undici>()), fetch: mockFetch }))
 
 afterEach(() => {
-    vi.mocked(globalThis.fetch).mockReset()
+    mockFetch.mockReset()
 })
 
 test('getBinaryFilename includes version in the filename', () => {
@@ -128,7 +127,7 @@ describe('download caching behaviour', () => {
 
         expect(result).toBe(path.resolve(CACHE_DIR, 'geckodriver-0.36.0'))
         // zero network requests — the hot path must be purely local
-        expect(globalThis.fetch).not.toHaveBeenCalled()
+        expect(mockFetch).not.toHaveBeenCalled()
     })
 
     test('does not fetch Cargo.toml when explicit version is cached', async () => {
@@ -136,13 +135,13 @@ describe('download caching behaviour', () => {
 
         await download('0.36.0', CACHE_DIR)
 
-        const cargoFetched = vi.mocked(globalThis.fetch).mock.calls
+        const cargoFetched = mockFetch.mock.calls
             .some(([url]) => String(url).includes('Cargo.toml'))
         expect(cargoFetched).toBe(false)
     })
 
     test('resolves latest version from Cargo.toml then hits versioned cache (no binary download)', async () => {
-        vi.mocked(globalThis.fetch).mockResolvedValue({
+        mockFetch.mockResolvedValue({
             status: 200,
             text: () => Promise.resolve('version = "0.36.0"\nother = "x"'),
         } as any)
@@ -153,14 +152,14 @@ describe('download caching behaviour', () => {
 
         expect(result).toBe(path.resolve(CACHE_DIR, 'geckodriver-0.36.0'))
         // only Cargo.toml fetched — no binary download
-        expect(globalThis.fetch).toHaveBeenCalledTimes(1)
-        expect(vi.mocked(globalThis.fetch).mock.calls[0][0]).toContain('Cargo.toml')
+        expect(mockFetch).toHaveBeenCalledTimes(1)
+        expect(mockFetch.mock.calls[0][0]).toContain('Cargo.toml')
     })
 
     test('extracts into a unique mkdtemp staging dir, then renames to the final versioned path', async () => {
         const stagingDir = path.resolve(CACHE_DIR, 'geckodriver-AbC123')
         vi.mocked(fsp.mkdtemp).mockResolvedValue(stagingDir)
-        vi.mocked(globalThis.fetch).mockResolvedValue({
+        mockFetch.mockResolvedValue({
             status: 200,
             body: {},
             blob: vi.fn().mockResolvedValue(new Blob([])),
@@ -188,7 +187,7 @@ describe('download caching behaviour', () => {
         vi.mocked(fsp.mkdtemp).mockImplementation(async (prefix) =>
             `${prefix}${++counter}`
         )
-        vi.mocked(globalThis.fetch).mockResolvedValue({
+        mockFetch.mockResolvedValue({
             status: 200,
             body: {},
             blob: vi.fn().mockResolvedValue(new Blob([])),
@@ -207,7 +206,7 @@ describe('download caching behaviour', () => {
 
     test('treats EEXIST on the final rename as success when the binary is already present', async () => {
         vi.mocked(fsp.mkdtemp).mockResolvedValue(path.resolve(CACHE_DIR, 'geckodriver-xyz'))
-        vi.mocked(globalThis.fetch).mockResolvedValue({
+        mockFetch.mockResolvedValue({
             status: 200, body: {}, blob: vi.fn().mockResolvedValue(new Blob([])),
         } as any)
         // cache miss on entry, but after the rename collision the binary exists
@@ -227,7 +226,7 @@ describe('download caching behaviour', () => {
         vi.mocked(os.platform).mockReturnValue('win32')  // .zip download path
         vi.mocked(os.arch).mockReturnValue('x64')
         vi.mocked(fsp.mkdtemp).mockResolvedValue(stagingDir)
-        vi.mocked(globalThis.fetch).mockResolvedValue({
+        mockFetch.mockResolvedValue({
             status: 200, body: {}, blob: vi.fn().mockResolvedValue(new Blob([])),
         } as any)
 
@@ -253,19 +252,16 @@ test('download with proxy support', async () => {
     try {
         process.env.HTTPS_PROXY = 'https://proxy.com'
         vi.resetModules()
-        const fetchSpy = vi.fn().mockResolvedValue({
+        mockFetch.mockResolvedValue({
             status: 400,
             text: () => Promise.resolve('foobar'),
             json: () => Promise.resolve({ foo: 'bar' })
         })
-        vi.stubGlobal('fetch', fetchSpy)
         const { download } = await import('../src/install.js')
         await download('stable').catch(() => {})
-        expect(fetchSpy).toBeCalledWith(
+        expect(mockFetch).toBeCalledWith(
             expect.any(String),
-            expect.objectContaining({
-                agent: expect.any(Object)
-            })
+            expect.objectContaining({ dispatcher: expect.any(EnvHttpProxyAgent) })
         )
     } finally {
         // undo the runtime mock so later tests that reset modules and
@@ -282,11 +278,11 @@ test('parseParams', () => {
 })
 
 test('retryFetch', async () => {
-    vi.mocked(globalThis.fetch)
+    mockFetch
         .mockRejectedValueOnce(new Error('request failed'))
         .mockRejectedValueOnce(new Error('request failed'))
         .mockResolvedValue('foobar' as any)
     expect(await retryFetch('foo', { bar: 'baz' } as any)).toBe('foobar')
-    expect(globalThis.fetch).toHaveBeenCalledTimes(3)
-    expect(globalThis.fetch).toHaveBeenCalledWith('foo', { bar: 'baz' })
+    expect(mockFetch).toHaveBeenCalledTimes(3)
+    expect(mockFetch).toHaveBeenCalledWith('foo', { bar: 'baz' })
 })

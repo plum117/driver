@@ -2,6 +2,8 @@ import os from 'node:os'
 import path from 'node:path'
 import fsp from 'node:fs/promises'
 import { vi, test, expect, describe, beforeEach } from 'vitest'
+import { EnvHttpProxyAgent } from 'undici'
+import type * as Undici from 'undici'
 
 import { fetchVersion, download, isAutoInstallEntrypoint } from '../src/install.js'
 import { EDGE_PRODUCTS_API } from '../src/constants.js'
@@ -42,9 +44,9 @@ vi.mock('@zip.js/zip.js', () => ({
     },
 }))
 
-// Mock the global fetch function
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
+const mockFetch = vi.hoisted(() => vi.fn())
+vi.mock('undici', async (original) => ({ ...(await original<typeof Undici>()), fetch: mockFetch }))
+const withProxyAgent = expect.objectContaining({ dispatcher: expect.any(EnvHttpProxyAgent) })
 
 // Set up the mock implementation
 const setupFetchMock = async () => {
@@ -116,7 +118,7 @@ describe('fetchVersion', () => {
         const version = await fetchVersion('121')
 
         expect(version).toBe('114.0.1823.82')
-        expect(mockFetch).toHaveBeenCalledWith('https://msedgedriver.microsoft.com/LATEST_RELEASE_121_MACOS', {})
+        expect(mockFetch).toHaveBeenCalledWith('https://msedgedriver.microsoft.com/LATEST_RELEASE_121_MACOS', withProxyAgent)
     })
 
     test('fetchVersion with major version on Windows', async () => {
@@ -127,7 +129,7 @@ describe('fetchVersion', () => {
         const version = await fetchVersion('121')
 
         expect(version).toBe('114.0.1823.82')
-        expect(mockFetch).toHaveBeenCalledWith('https://msedgedriver.microsoft.com/LATEST_RELEASE_121_LINUX', {})
+        expect(mockFetch).toHaveBeenCalledWith('https://msedgedriver.microsoft.com/LATEST_RELEASE_121_LINUX', withProxyAgent)
     })
 
     test('fetchVersion with major version on Linux', async () => {
@@ -138,7 +140,7 @@ describe('fetchVersion', () => {
         const version = await fetchVersion('121')
 
         expect(version).toBe('114.0.1823.82')
-        expect(mockFetch).toHaveBeenCalledWith('https://msedgedriver.microsoft.com/LATEST_RELEASE_121_WINDOWS', {})
+        expect(mockFetch).toHaveBeenCalledWith('https://msedgedriver.microsoft.com/LATEST_RELEASE_121_WINDOWS', withProxyAgent)
     })
 
     test('fetchVersion with proxy support', async () => {
@@ -147,12 +149,8 @@ describe('fetchVersion', () => {
         const { fetchVersion } = await import('../src/install.js')
 
         expect(await fetchVersion('stable')).toBe('121.0.2277.112')
-        expect(fetch).toBeCalledWith(
-            expect.any(String),
-            expect.objectContaining({
-                agent: expect.any(Object)
-            })
-        )
+        expect(mockFetch).toBeCalledWith(expect.any(String), withProxyAgent)
+        delete process.env.HTTPS_PROXY
     })
 })
 
