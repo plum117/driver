@@ -65,6 +65,8 @@ Alternatively, you can add the same property to your .npmrc file.
 
 The default location is set to https://github.com/mozilla/geckodriver/releases/download
 
+A CDN URL can carry credentials, for example `https://user:password@INTERNAL_CDN`: they are sent as a Basic `Authorization` header and kept out of the logs. Percent-encode special characters in them (`@` is `%40`).
+
 ## Setting a PROXY URL
 
 Use `HTTPS_PROXY` or `HTTP_PROXY` to set your proxy URL, and `NO_PROXY` for the hosts that skip it. The lower-case forms (`https_proxy`, `http_proxy`, `no_proxy`) work too and win over the upper-case ones.
