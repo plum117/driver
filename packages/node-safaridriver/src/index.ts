@@ -88,6 +88,9 @@ export const start = (options: SafaridriverOptions = {}) => {
     }
     child.once('exit', forget)
     child.once('close', forget)
+    // execFile listened for `error` itself; without a listener, a missing binary would crash the
+    // caller. Callers still get the error through their own listeners.
+    child.on('error', forget)
     return child
 }
 

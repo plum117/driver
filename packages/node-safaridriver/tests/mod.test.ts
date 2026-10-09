@@ -10,7 +10,8 @@ vi.mock('node:child_process', () => ({
         // records `once` listeners so a test can play the process ending
         spawn: vi.fn().mockImplementation(() => {
             const listeners: Record<string, () => void> = {}
-            return { kill: vi.fn(), once: vi.fn((event: string, cb: () => void) => { listeners[event] = cb }), listeners }
+            const listen = vi.fn((event: string, cb: () => void) => { listeners[event] = cb })
+            return { kill: vi.fn(), once: listen, on: listen, listeners }
         })
     }
 }))
