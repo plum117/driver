@@ -31,6 +31,7 @@ From geckodriver 8 and edgedriver 8, `@wdio/logger` is a peer dependency, so the
 - If you use `geckodriver` or `edgedriver` without WebdriverIO and install with Yarn, add `@wdio/logger` to your dependencies. npm and pnpm install it for you.
 - `geckodriver` no longer reads `GECKODRIVER_FILEPATH`. Use `GECKODRIVER_PATH`.
 - `require()` now returns every export of the package, for example `findEdgePath` from `edgedriver`, with CommonJS types.
+- With `require('safaridriver')`, `start()` returns the `ChildProcess` and `stop()` returns nothing, as in ESM: before, both returned a Promise. `await start()` still works; `start().then(...)` does not.
 - The rest of the API, the CLI and the options did not change.
 
 ---
