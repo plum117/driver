@@ -26,15 +26,20 @@ describe.skipIf(process.platform === 'win32')('finder on Linux', () => {
     let edgeBinary = ''
 
     beforeAll(() => {
-        home.dir = fs.mkdtempSync(path.join(os.tmpdir(), 'edgedriver-finder-'))
+        home.dir = fs.mkdtempSync(path.join(os.tmpdir(), 'edgedriver finder-'))
         const applications = path.join(home.dir, '.local', 'share', 'applications')
-        edgeBinary = path.join(home.dir, 'opt', 'microsoft-edge-stable')
+        // the home folder has a space; Exec paths have none, as in real Edge entries
+        edgeBinary = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'edgedriver-bin-')), 'microsoft-edge-stable')
         fs.mkdirSync(applications, { recursive: true })
-        fs.mkdirSync(path.dirname(edgeBinary))
         fs.writeFileSync(edgeBinary, '', { mode: 0o755 })
         fs.writeFileSync(
             path.join(applications, 'microsoft-edge.desktop'),
             `[Desktop Entry]\nName=Microsoft Edge\nExec=${edgeBinary} %U\n`
+        )
+        // its first word is /usr/bin/env, not Edge, even though the line mentions Edge later
+        fs.writeFileSync(
+            path.join(applications, 'edge-wrapper.desktop'),
+            `[Desktop Entry]\nName=Edge wrapper\nExec=/usr/bin/env FOO=1 ${edgeBinary} %U\n`
         )
     })
 
@@ -42,11 +47,19 @@ describe.skipIf(process.platform === 'win32')('finder on Linux', () => {
         delete process.env.EDGE_BINARY_PATH
     })
 
-    afterAll(() => fs.rmSync(home.dir, { recursive: true, force: true }))
+    afterAll(() => {
+        fs.rmSync(home.dir, { recursive: true, force: true })
+        fs.rmSync(path.dirname(edgeBinary), { recursive: true, force: true })
+    })
 
     test('falls back to the .desktop entry when Edge is not on PATH', () => {
         vi.mocked(findByWhich).mockReturnValue([])
         expect(findEdgePath()).toBe(edgeBinary)
+    })
+
+    test('skips an Exec line whose first word is not Edge', () => {
+        vi.mocked(findByWhich).mockReturnValue([])
+        expect(findEdgePath()).not.toBe('/usr/bin/env')
     })
 
     test('prefers Edge on PATH over the .desktop entry', () => {
