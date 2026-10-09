@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import cp, { type ChildProcess } from 'node:child_process'
+import cp, { type ChildProcess, type SpawnOptions } from 'node:child_process'
 
 export const DEFAULT_PATH = '/usr/bin/safaridriver'
 export const DEFAULT_STP_PATH = '/Applications/Safari Technology Preview.app/Contents/MacOS/safaridriver'
@@ -38,10 +38,15 @@ export interface SafaridriverOptions {
      * If enabled, it starts the Safaridriver binary from the Safari Technology Preview app.
      */
     useTechnologyPreview?: boolean
+    /**
+     * Options for `child_process.spawn`. Pass `{ stdio: 'ignore' }` if you don't read the
+     * driver output: an unread pipe fills up and then blocks the driver.
+     */
+    spawnOpts?: SpawnOptions
 }
 
 let instance: ChildProcess | undefined
-let instanceOptions: SafaridriverOptions
+let instancePort: number | undefined
 export const start = (options: SafaridriverOptions = {}) => {
     const port = typeof options.port === 'number' ? options.port : DEFAULT_PORT
     const args: string[] = [`--port=${port}`]
@@ -68,12 +73,22 @@ export const start = (options: SafaridriverOptions = {}) => {
     }
 
     if (instance) {
-        throw new Error(`There is already a Safaridriver instance running on port ${instanceOptions.port}!`)
+        throw new Error(`There is already a Safaridriver instance running on port ${instancePort}!`)
     }
 
-    instanceOptions = options
-    instance = cp.execFile(driverPath, args)
-    return instance
+    // spawn, not execFile: execFile buffers the output and kills the driver after 1 MB of it
+    const child = cp.spawn(driverPath, args, options.spawnOpts ?? {})
+    instance = child
+    instancePort = port
+    // `exit` when the driver ran (e.g. `--enable` exits at once), `close` when it failed to start
+    const forget = () => {
+        if (instance === child) {
+            instance = undefined
+        }
+    }
+    child.once('exit', forget)
+    child.once('close', forget)
+    return child
 }
 
 export const stop = () => {
