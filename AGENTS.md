@@ -66,7 +66,7 @@ Lint is oxlint ([`.oxlintrc.json`](.oxlintrc.json)), not eslint —
 |---|---|
 | `packages/node-*/dist/` | `pnpm run build` |
 | `pnpm-lock.yaml` | `pnpm install` / `pnpm update` |
-| `version` in `packages/node-*/package.json` | the release workflow (release-it) |
+| `version` in `packages/node-*/package.json` | the release workflow (release-it); a recovery PR may only set it back to the version npm already has, after a run published without pushing its bump |
 | `packages/node-geckodriver/CHANGELOG.md` | nothing: frozen history; release notes live in GitHub releases |
 
 ## CI

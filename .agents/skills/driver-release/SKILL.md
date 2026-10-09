@@ -35,8 +35,9 @@ WebdriverIO log file.
 
 - `main` is green on every CI job, including the push-only Node 22.19.0 row.
 - Each `package.json` version equals `npm view <driver> version`. If not, a
-  previous run published without pushing its bump; fix the versions in a PR
-  first, or release-it computes a version that already exists.
+  previous run published without pushing its bump: open a recovery PR that
+  sets each version to the npm one (the exception in AGENTS.md "Do not
+  hand-edit"), or release-it computes a version that already exists.
 
 ## 3. Dry run, then release
 
