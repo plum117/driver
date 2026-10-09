@@ -49,9 +49,9 @@ package. Prefer the smallest proof:
 | Driver launch / real browser behavior | `pnpm run test:e2e` — needs real Edge/Firefox/Safari installed; CI runs it under xvfb on macOS/Linux/Windows, skip locally if you don't have the browsers |
 
 Lint is oxlint ([`.oxlintrc.json`](.oxlintrc.json)), not eslint —
-`@stylistic/eslint-plugin` is only pulled in as an oxlint plugin. Husky runs
-`test:lint` pre-commit and `pnpm test` pre-push; don't bypass either with
-`--no-verify`.
+`@stylistic/eslint-plugin` is only pulled in as an oxlint plugin. Husky lints the
+staged JS/TS files pre-commit and runs `pnpm test` pre-push; don't bypass
+either with `--no-verify`.
 
 ## Releases
 
