@@ -21,7 +21,7 @@
         "url": "https://github.com/webdriverio/driver/issues"
     },
     "engines": {
-        "node": ">=22.0.0"
+        "node": ">=22.19.0"
     },
     "main": "./dist/cjs/index.js",
     "type": "module",
@@ -37,7 +37,6 @@
         ]
     },
     "types": "./dist/index.d.ts",
-    "typeScriptVersion": "3.8.3",
     "scripts": {
         "build": "tsc -b . && node ../../scripts/copy-cjs-pkg.mjs",
         "clean": "rimraf ./dist",
