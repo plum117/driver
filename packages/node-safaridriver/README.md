@@ -29,6 +29,8 @@ safaridriver.start()
 safaridriver.stop()
 ```
 
+`start()` returns the [`ChildProcess`](https://nodejs.org/api/child_process.html#class-childprocess). Read its `stdout` and `stderr`, or pass `spawnOpts: { stdio: 'ignore' }`: an unread pipe fills up and then blocks the driver.
+
 ## Options
 
 ### `port`
@@ -67,6 +69,13 @@ Enables diagnostic logging for all sessions hosted by this safaridriver instance
 
 __Type:__ `boolean`<br />
 __Default:__ `false`
+
+### `spawnOpts`
+
+Options for the Safaridriver process, passed to [`child_process.spawn`](https://nodejs.org/api/child_process.html#child_processspawncommand-args-options).
+
+__Type:__ `SpawnOptions`<br />
+__Default:__ `undefined`
 
 ----
 

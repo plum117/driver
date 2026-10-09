@@ -67,7 +67,7 @@ The default location is set to https://github.com/mozilla/geckodriver/releases/d
 
 ## Setting a PROXY URL
 
-Use `HTTPS_PROXY` or `HTTP_PROXY` to set your proxy URL.
+Use `HTTPS_PROXY` or `HTTP_PROXY` to set your proxy URL, and `NO_PROXY` for the hosts that skip it. The lower-case forms (`https_proxy`, `http_proxy`, `no_proxy`) work too and win over the upper-case ones.
 
 # Programmatic Interface
 
@@ -80,6 +80,8 @@ The package exports a `start` and `download` method.
 ### `start`
 
 Starts a Geckodriver instance and returns a [`ChildProcess`](https://nodejs.org/api/child_process.html#class-childprocess). If Geckodriver is not downloaded it will download it for you.
+
+The driver writes logs to its `stdout` and `stderr`. Read them, or pass `spawnOpts: { stdio: 'ignore' }`: an unread pipe fills up and then blocks the driver.
 
 __Params:__ `GeckodriverParameters` - options to pass into Geckodriver (see below)
 
@@ -228,9 +230,9 @@ Default: `process.env.GECKODRIVER_CACHE_DIR || os.tmpdir()`
 Options to pass into the geckodriver process. This can be useful if needing
 Firefox to spawn with `MOZ_` prefix variables, such as `MOZ_HEADLESS_WIDTH`.
 See https://nodejs.org/api/child_process.html#child_processspawncommand-args-options for
-all options.
+all options. Pass `{ stdio: 'ignore' }` if you don't read the driver output.
 
-Type: `SpawnOptionsWithoutStdio | SpawnOptionsWithStdioTuple`<br />
+Type: `SpawnOptions`<br />
 Default: `undefined`
 
 # Other Browser Driver

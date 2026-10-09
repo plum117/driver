@@ -35,7 +35,7 @@ Microsoft Edge WebDriver 105.0.1343.33 (4122bb4646b33f33bca5d269490b9caadfc452b2
 
 # Setting a PROXY URL
 
-Use `HTTPS_PROXY` or `HTTP_PROXY` to set your proxy URL.
+Use `HTTPS_PROXY` or `HTTP_PROXY` to set your proxy URL, and `NO_PROXY` for the hosts that skip it. The lower-case forms (`https_proxy`, `http_proxy`, `no_proxy`) work too and win over the upper-case ones.
 
 # Programmatic Interface
 
@@ -48,6 +48,8 @@ The package exports a `start`, `findEdgePath` and `download` method.
 ### `start`
 
 Starts an EdgeDriver instance and returns a [`ChildProcess`](https://nodejs.org/api/child_process.html#class-childprocess). If EdgeDriver is not downloaded it will download it for you.
+
+The driver writes logs to its `stdout` and `stderr`. Read them, or pass `spawnOpts: { stdio: 'ignore' }`: an unread pipe fills up and then blocks the driver.
 
 __Params:__ `EdgedriverParameters` - options to pass into EdgeDriver (see below)
 
@@ -220,6 +222,12 @@ Don't download EdgeDriver, instead use a custom path to it, e.g. a cached binary
 
 Type: `string`<br />
 Default: `process.env.EDGEDRIVER_PATH`
+
+### spawnOpts
+Options for the EdgeDriver process, passed to [`child_process.spawn`](https://nodejs.org/api/child_process.html#child_processspawncommand-args-options). Pass `{ stdio: 'ignore' }` if you don't read the driver output.
+
+Type: `SpawnOptions`<br />
+Default: `undefined`
 
 ---
 
