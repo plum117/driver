@@ -17,15 +17,22 @@ describe.skipIf(process.platform === 'win32')('start', () => {
         const argsFile = path.join(root, 'args')
         // a fake msedgedriver that records its arguments, then writes more than a pipe buffer
         const driver = path.join(root, 'msedgedriver')
-        fs.writeFileSync(driver, `#!/bin/sh\necho "$@" > '${argsFile}'\nhead -c 2097152 /dev/zero\ntouch '${marker}'\nsleep 5\n`, { mode: 0o755 })
+        fs.writeFileSync(driver, `#!/bin/sh\necho "$@" > '${argsFile}'\nhead -c 2097152 /dev/zero\ntouch '${marker}'\n`, { mode: 0o755 })
 
         const child = await start({ customEdgeDriverPath: driver, port: 1234, spawnOpts: { stdio: 'ignore' } })
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-        child.kill()
+        // the fake driver exits once it is done; with a piped stdout it would block and never exit
+        const code = await new Promise<number | null>((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('the fake driver did not exit in time')), 15_000)
+            child.once('close', (exitCode) => {
+                clearTimeout(timer)
+                resolve(exitCode)
+            })
+        })
 
+        expect(code).toBe(0)
         expect(fs.existsSync(marker)).toBe(true)
         const args = fs.readFileSync(argsFile, 'utf8')
         expect(args).toContain('--port=1234')
         expect(args).not.toContain('spawn')
-    })
+    }, 20_000)
 })
