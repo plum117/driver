@@ -149,11 +149,18 @@ export async function fetchVersion (edgeVersion: string) {
      * if browser version is a tagged version, e.g. stable, beta, dev, canary
      */
     if (TAGGED_VERSIONS.includes(edgeVersion.toLowerCase())) {
-        const apiResponse = await fetch(EDGE_PRODUCTS_API, fetchOpts).catch((err) => {
-            log.error(`Couldn't fetch version from ${EDGE_PRODUCTS_API}: ${err.stack}`)
-            return { json: async () => [] as ProductAPIResponse[] }
-        })
-        const products = await apiResponse.json() as ProductAPIResponse[]
+        const products = await fetch(EDGE_PRODUCTS_API, fetchOpts)
+            .then(async (res) => {
+                if (!res.ok) {
+                    throw new Error(`statusCode ${res.status}`)
+                }
+                return await res.json() as ProductAPIResponse[]
+            })
+            .catch((err) => {
+                // the CDN below still answers for tagged versions
+                log.error(`Couldn't fetch version from ${EDGE_PRODUCTS_API}: ${err.stack}`)
+                return [] as ProductAPIResponse[]
+            })
         const product = products.find((p) => p.Product.toLowerCase() === edgeVersion.toLowerCase())
         const productVersion = product?.Releases.find((r) => (
             /**
@@ -175,6 +182,9 @@ export async function fetchVersion (edgeVersion: string) {
         }
 
         const res = await fetch(format(TAGGED_VERSION_URL, edgeVersion.toUpperCase()), fetchOpts)
+        if (res.status !== 200) {
+            throw new Error(`Couldn't fetch the latest ${edgeVersion} version (statusCode ${res.status}): ${res.statusText}`)
+        }
         return sanitizeVersion(await res.text())
     }
 
