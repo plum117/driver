@@ -19,8 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        # full matrix on push; PRs test Node 24 only, for fast feedback
-        node: ${{ github.event_name == 'pull_request' && fromJson('[24]') || fromJson('[22, 24, 26]') }}
+        # full matrix on push, including the engines floor; PRs test Node 24 only, for fast feedback
+        node: ${{ github.event_name == 'pull_request' && fromJson('[24]') || fromJson('["22.19.0", 22, 24, 26]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set git to use LF
@@ -45,9 +45,7 @@ jobs:
         run: pnpm run build
 
       - name: 🧪 Run Tests
-        uses: GabrielBB/xvfb-action@b706e4e27b14669b486812790492dc50ca16b465 # v1.7
-        with:
-          run: pnpm test
+        run: pnpm test
 
       - name: 🧪 Run E2E Tests
         run: pnpm run test:e2e
