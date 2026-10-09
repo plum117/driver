@@ -126,6 +126,18 @@ export interface BasicAuthResult {
 }
 
 /**
+ * A bare `%` (`p%ss`) is not percent-encoding: keep it as text. If decodeURIComponent threw here,
+ * the caller would get back, and log, the URL with the password in it.
+ */
+function decodeCredential (value: string) {
+    try {
+        return decodeURIComponent(value)
+    } catch {
+        return value
+    }
+}
+
+/**
  * Extract Basic Auth credentials from a URL and return the cleaned URL with auth header.
  * This is needed because fetch() doesn't support URLs with embedded credentials.
  * @param urlString URL that may contain credentials (e.g., https://user:pass@host/)
@@ -136,7 +148,7 @@ export function extractBasicAuthFromUrl(urlString: string): BasicAuthResult {
         const url = new URL(urlString)
         if (url.username || url.password) {
             // URL keeps them percent-encoded (`p%40ss`); the header needs the real `p@ss`
-            const credentials = Buffer.from(`${decodeURIComponent(url.username)}:${decodeURIComponent(url.password)}`).toString('base64')
+            const credentials = Buffer.from(`${decodeCredential(url.username)}:${decodeCredential(url.password)}`).toString('base64')
             url.username = ''
             url.password = ''
             return {

@@ -305,6 +305,13 @@ describe('extractBasicAuthFromUrl', () => {
         })
     })
 
+    test('a bare % in a credential is kept as text, not left in the URL', () => {
+        expect(extractBasicAuthFromUrl('https://us%er:p%ss@cdn.example.com/x.zip')).toEqual({
+            url: 'https://cdn.example.com/x.zip',
+            authHeader: `Basic ${Buffer.from('us%er:p%ss').toString('base64')}`
+        })
+    })
+
     test('keeps a URL without credentials as it is', () => {
         expect(extractBasicAuthFromUrl('https://cdn.example.com/x.zip')).toEqual({ url: 'https://cdn.example.com/x.zip' })
     })

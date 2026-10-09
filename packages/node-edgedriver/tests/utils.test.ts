@@ -55,6 +55,12 @@ describe('extractBasicAuthFromUrl', () => {
         expect(result.authHeader).toBe('Basic ' + Buffer.from('myuser:').toString('base64'))
     })
 
+    test('a bare % in a credential is kept as text, not left in the URL', () => {
+        const result = extractBasicAuthFromUrl('https://us%er:p%ss@cdn.example.com/path/file.zip')
+        expect(result.url).toBe('https://cdn.example.com/path/file.zip')
+        expect(result.authHeader).toBe('Basic ' + Buffer.from('us%er:p%ss').toString('base64'))
+    })
+
     test('with invalid URL returns original', () => {
         const result = extractBasicAuthFromUrl('not-a-valid-url')
         expect(result.url).toBe('not-a-valid-url')
