@@ -57,11 +57,16 @@
     ]
   },
   "dependencies": {
-    "@wdio/logger": "^10.0.0",
     "@zip.js/zip.js": "^2.18.2",
     "decamelize": "^6.0.1",
     "http-proxy-agent": "^9.1.0",
     "https-proxy-agent": "^9.1.0",
     "modern-tar": "^0.8.5"
+  },
+  "peerDependencies": {
+    "@wdio/logger": "^9.18.0 || ^10.0.0"
+  },
+  "devDependencies": {
+    "@wdio/logger": "^10.0.0"
   }
 }
