@@ -36,6 +36,7 @@ From geckodriver 8 and edgedriver 8, `@wdio/logger` is a peer dependency, so the
 - `edgedriver`'s `start()` resolves to a `ChildProcess` (it was typed `ChildProcessWithoutNullStreams`): its `stdout` and `stderr` are `null` when you pass `spawnOpts: { stdio: 'ignore' }`.
 - `safaridriver` now pipes the driver output like the other drivers: read `stdout` and `stderr`, or pass `spawnOpts: { stdio: 'ignore' }`. Before, the output was buffered and the driver was killed after 1 MB of it.
 - The `edgedriver` and `geckodriver` CLIs exit with code 1 when a signal kills the driver; they exited with 0.
+- On Windows, `EDGEDRIVER_AUTO_INSTALL` and `GECKODRIVER_AUTO_INSTALL` now download the driver during the install; before, the install always skipped the download there.
 - `findEdgePath()` on Windows returns `undefined` when Edge is not installed, as on macOS and Linux; it threw.
 - `spawnOpts` is a new option of `edgedriver` and `safaridriver`. The rest of the API, the CLI and the options did not change.
 
@@ -83,6 +84,8 @@ By default, binaries download when initialized via CLI or API. To download them 
 
 * **Geckodriver:** `GECKODRIVER_AUTO_INSTALL=1 npm i`
 * **Edgedriver:** `EDGEDRIVER_AUTO_INSTALL=1 npm i`
+
+The download runs in each package's `postinstall` script. pnpm 10 or newer and Bun run it only for packages you approve (`pnpm approve-builds`, or `trustedDependencies` in Bun), and recent npm versions warn until you approve them with `npm install-scripts approve <package>`. If the download fails, the install does not fail: the driver then downloads on first use.
 
 #### Version Pinning & Custom Sources
 

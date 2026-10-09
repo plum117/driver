@@ -43,7 +43,7 @@
   "scripts": {
     "build": "tsc -b . && node ../../scripts/copy-cjs-pkg.mjs",
     "clean": "rimraf ./dist ./tsconfig.tsbuildinfo",
-    "postinstall": "test -f ./dist/install.js && node ./dist/install.js || echo \"Skipping install, project not built!\"",
+    "postinstall": "node -e \"if (require('fs').existsSync('./dist/install.js')) { process.exit(1) } console.log('Skipping install, project not built!')\" || node ./dist/install.js || echo Skipping install, the driver download failed.",
     "test": "run-s test:*",
     "test:lint": "oxlint .",
     "test:typecheck": "tsc -p tsconfig.test.json",

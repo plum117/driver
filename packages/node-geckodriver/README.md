@@ -37,6 +37,8 @@ By default, this package downloads Geckodriver when used for the first time thro
 GECKODRIVER_AUTO_INSTALL=1 npm i
 ```
 
+The download runs in the package's `postinstall` script. pnpm 10 or newer and Bun run it only for a package you approve (`pnpm approve-builds`, or `trustedDependencies` in Bun), and recent npm versions warn until you approve it with `npm install-scripts approve geckodriver`. If the download fails, the install does not fail: the driver then downloads on first use.
+
 To get a list of available CLI options run `npx geckodriver --help`. By default, this package downloads the latest version of the driver. If you prefer to have it install a custom Geckodriver version you can define the environment variable `GECKODRIVER_VERSION` when running in CLI, e.g.:
 
 ```sh
