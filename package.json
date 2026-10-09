@@ -20,7 +20,6 @@
     "@release-it/conventional-changelog": "^12.0.2",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "^26.6.2",
-    "@types/which": "^3.0.4",
     "@vitest/coverage-v8": "^5.0.1",
     "husky": "^9.1.7",
     "npm-run-all2": "^9.0.3",

@@ -1,8 +1,8 @@
 import os from 'node:os'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
+import path from 'node:path'
 
-import which from 'which'
 import decamelize from 'decamelize'
 
 import type { EdgedriverParameters } from './types.js'
@@ -68,22 +68,31 @@ export function sort(installations: string[], priorities: Priorities[]) {
 }
 
 /**
- * Look for edge executables by using the which command
+ * First executable named `executable` in a PATH directory, like `which`
  */
-export function findByWhich(executables: string[], priorities: Priorities[]) {
-    const installations: string[] = []
-    executables.forEach((executable) => {
+export function findOnPath(executable: string, envPath = process.env.PATH) {
+    for (const dir of (envPath ?? '').split(path.delimiter).filter(Boolean)) {
+        const candidate = path.join(dir, executable)
         try {
-            const browserPath = which.sync(executable)
-            if (hasAccessSync(browserPath)) {
-                installations.push(browserPath)
+            fs.accessSync(candidate, fs.constants.X_OK)
+            if (fs.statSync(candidate).isFile()) {
+                return candidate
             }
         } catch {
-            // Not installed.
+            // not in this directory, or not executable
         }
-    })
+    }
+}
 
-    return sort(uniq(installations.filter(Boolean)), priorities)
+/**
+ * Look for edge executables on PATH
+ */
+export function findByWhich(executables: string[], priorities: Priorities[]) {
+    const installations = executables
+        .map((executable) => findOnPath(executable))
+        .filter((browserPath): browserPath is string => Boolean(browserPath))
+
+    return sort(uniq(installations), priorities)
 }
 
 /**

@@ -5,10 +5,6 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
-  ignore:
-    # which 7 only narrows engines to ^22.22.2 || ^24.15.0 || >=26, stricter than our and WebdriverIO's >=22.19.0
-    - dependency-name: which
-      update-types: ["version-update:semver-major"]
 
   groups:
     patch-deps-updates-main:
