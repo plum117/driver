@@ -146,7 +146,8 @@ if (
     path.normalize(process.argv[1]).endsWith(path.sep + installJsPath) &&
     process.env.GECKODRIVER_AUTO_INSTALL
 ) {
-    await download().then(
+    // no top-level await: it would make `require('geckodriver')` (require(esm)) throw
+    void download().then(
         () => log.info('Success!'),
         (err) => log.error(`Failed to install Geckodriver: ${err.stack}`)
     )

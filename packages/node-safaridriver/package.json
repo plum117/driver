@@ -21,26 +21,27 @@
         "url": "https://github.com/webdriverio/driver/issues"
     },
     "engines": {
-        "node": ">=22.0.0"
+        "node": ">=22.19.0"
     },
     "main": "./dist/cjs/index.js",
     "type": "module",
     "module": "./dist/index.js",
     "exports": {
-        ".": [
-            {
+        ".": {
+            "import": {
                 "types": "./dist/index.d.ts",
-                "import": "./dist/index.js",
-                "require": "./dist/cjs/index.js"
+                "default": "./dist/index.js"
             },
-            "./dist/cjs/index.js"
-        ]
+            "require": {
+                "types": "./dist/cjs/index.d.ts",
+                "default": "./dist/cjs/index.js"
+            }
+        }
     },
-    "types": "./dist/index.d.ts",
-    "typeScriptVersion": "3.8.3",
+    "types": "./dist/cjs/index.d.ts",
     "scripts": {
         "build": "tsc -b . && node ../../scripts/copy-cjs-pkg.mjs",
-        "clean": "rimraf ./dist",
+        "clean": "rimraf ./dist ./tsconfig.tsbuildinfo",
         "test": "run-s test:*",
         "test:lint": "oxlint .",
         "test:unit": "vitest run",

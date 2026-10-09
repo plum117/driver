@@ -17,7 +17,7 @@
     }
   ],
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.19.0"
   },
   "keywords": [
     "geckodriver",
@@ -30,7 +30,7 @@
   },
   "scripts": {
     "build": "tsc -b . && node ../../scripts/copy-cjs-pkg.mjs",
-    "clean": "rimraf ./dist",
+    "clean": "rimraf ./dist ./tsconfig.tsbuildinfo",
     "postinstall": "test -f ./dist/install.js && node ./dist/install.js || echo \"Skipping install, project not built!\"",
     "test": "run-s build test:*",
     "test:lint": "oxlint .",
@@ -44,23 +44,30 @@
     "url": "https://github.com/webdriverio/driver/issues"
   },
   "type": "module",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/cjs/index.d.ts",
   "main": "./dist/cjs/index.js",
   "exports": {
-    ".": [
-      {
+    ".": {
+      "import": {
         "types": "./dist/index.d.ts",
-        "import": "./dist/index.js",
-        "require": "./dist/cjs/index.js"
+        "default": "./dist/index.js"
       },
-      "./dist/cjs/index.js"
-    ]
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
   },
   "dependencies": {
-    "@wdio/logger": "^9.18.0",
     "@zip.js/zip.js": "^2.18.2",
     "decamelize": "^6.0.1",
     "modern-tar": "^0.8.5",
     "undici": "^8.11.2"
+  },
+  "peerDependencies": {
+    "@wdio/logger": "^9.18.0 || ^10.0.0"
+  },
+  "devDependencies": {
+    "@wdio/logger": "^10.0.0"
   }
 }
