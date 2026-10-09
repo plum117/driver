@@ -17,7 +17,7 @@
     }
   ],
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.19.0"
   },
   "keywords": [
     "geckodriver",
@@ -57,7 +57,7 @@
     ]
   },
   "dependencies": {
-    "@wdio/logger": "^9.18.0",
+    "@wdio/logger": "^10.0.0",
     "@zip.js/zip.js": "^2.18.2",
     "decamelize": "^6.0.1",
     "http-proxy-agent": "^9.1.0",
