@@ -69,6 +69,11 @@ jobs:
             echo "::error::WDIO_BOT_GITHUB_TOKEN has no write access to ${GITHUB_REPOSITORY}"
             exit 1
           fi
+          # .protection.enabled is classic protection only; its bypass can't be read without admin
+          if [ "$(gh api "repos/${GITHUB_REPOSITORY}/branches/main" --jq .protection.enabled)" != "false" ]; then
+            echo "::error::main has classic branch protection, which this check can't evaluate; use a ruleset instead"
+            exit 1
+          fi
           # a fast-forward commit push only passes these rules; any other rule needs a bypass
           ids=$(gh api "repos/${GITHUB_REPOSITORY}/rules/branches/main" --jq \
             '[.[] | select(.type | IN("deletion", "non_fast_forward", "creation", "required_linear_history") | not) | .ruleset_id] | unique | .[]')
