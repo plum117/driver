@@ -30,12 +30,19 @@ describe('getEdgeVersionWin', () => {
 
 describe.skipIf(process.platform === 'win32')('getEdgeVersionUnix', () => {
     test('runs the binary without a shell, so quotes and $ in its path stay literal', async () => {
-        const dir = path.join(root, 'Edge "beta" $(touch pwned)')
+        // a file name can't hold `/`, so a shell would find the marker path in the environment
+        const marker = path.join(root, 'pwned')
+        process.env.EDGEDRIVER_TEST_MARKER = marker
+        const dir = path.join(root, 'Edge "beta" $(touch "$EDGEDRIVER_TEST_MARKER")')
         fs.mkdirSync(dir)
         const edge = path.join(dir, 'microsoft-edge')
         fs.writeFileSync(edge, '#!/bin/sh\necho "Microsoft Edge 154.0.4258.62 unknown"\n', { mode: 0o755 })
 
-        expect(await getEdgeVersionUnix(edge)).toBe('154.0.4258.62')
-        expect(fs.existsSync(path.join(process.cwd(), 'pwned'))).toBe(false)
+        try {
+            expect(await getEdgeVersionUnix(edge)).toBe('154.0.4258.62')
+            expect(fs.existsSync(marker)).toBe(false)
+        } finally {
+            delete process.env.EDGEDRIVER_TEST_MARKER
+        }
     })
 })

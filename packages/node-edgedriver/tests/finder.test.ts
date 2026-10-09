@@ -24,6 +24,7 @@ import { findByWhich } from '../src/utils.js'
 
 describe.skipIf(process.platform === 'win32')('finder on Linux', () => {
     let edgeBinary = ''
+    let unreadable = ''
 
     beforeAll(() => {
         home.dir = fs.mkdtempSync(path.join(os.tmpdir(), 'edgedriver finder-'))
@@ -36,6 +37,10 @@ describe.skipIf(process.platform === 'win32')('finder on Linux', () => {
             path.join(applications, 'microsoft-edge.desktop'),
             `[Desktop Entry]\nName=Microsoft Edge\nExec=${edgeBinary} %U\n`
         )
+        // an unreadable subfolder must not stop the search (root reads it anyway)
+        unreadable = path.join(applications, 'private')
+        fs.mkdirSync(unreadable)
+        fs.chmodSync(unreadable, 0o000)
         // its first word is /usr/bin/env, not Edge, even though the line mentions Edge later
         fs.writeFileSync(
             path.join(applications, 'edge-wrapper.desktop'),
@@ -48,6 +53,7 @@ describe.skipIf(process.platform === 'win32')('finder on Linux', () => {
     })
 
     afterAll(() => {
+        fs.chmodSync(unreadable, 0o755)
         fs.rmSync(home.dir, { recursive: true, force: true })
         fs.rmSync(path.dirname(edgeBinary), { recursive: true, force: true })
     })
@@ -60,6 +66,11 @@ describe.skipIf(process.platform === 'win32')('finder on Linux', () => {
     test('skips an Exec line whose first word is not Edge', () => {
         vi.mocked(findByWhich).mockReturnValue([])
         expect(findEdgePath()).not.toBe('/usr/bin/env')
+    })
+
+    test('still searches PATH when an applications subfolder is unreadable', () => {
+        vi.mocked(findByWhich).mockReturnValue(['/usr/bin/microsoft-edge'])
+        expect(() => findEdgePath()).not.toThrow()
     })
 
     test('prefers Edge on PATH over the .desktop entry', () => {
