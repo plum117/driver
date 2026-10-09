@@ -30,9 +30,12 @@ and `.npmignore`.
 Node from [`.nvmrc`](.nvmrc) (24), pnpm pinned in `package.json#packageManager`.
 
 ```sh
-pnpm install
-pnpm run build   # tsc -b per package + CJS shim (scripts/copy-cjs-pkg.mjs)
+.agents/setup    # install + build, then stamp HEAD; re-run after HEAD moves
+.agents/resume   # read-only: Node, pnpm, packages/node-*/dist and the stamp are current
 ```
+
+`.agents/setup` runs `pnpm install --frozen-lockfile` and `pnpm run build`
+(`tsc -b` per package + the CJS step in `scripts/copy-cjs-pkg.mjs`).
 
 `src/` edits aren't visible to tests or `postinstall` until rebuilt — use
 `pnpm run watch` (all packages) or `pnpm --filter <pkg> run watch` (one).
@@ -46,22 +49,39 @@ package. Prefer the smallest proof:
 |---|---|
 | One driver package | `pnpm --filter <pkg> test` (that package's lint + unit) — `<pkg>` is the npm name (`edgedriver`, `geckodriver`, `safaridriver`, `e2e`), not the `packages/node-*` directory name |
 | Root config, `scripts/`, or more than one package | `pnpm run test:lint`, then `pnpm test` |
-| Driver launch / real browser behavior | `pnpm run test:e2e` — needs real Edge/Firefox/Safari installed; CI runs it under xvfb on macOS/Linux/Windows, skip locally if you don't have the browsers |
+| Driver launch / real browser behavior | `pnpm run test:e2e` — needs real Edge/Firefox/Safari installed; headless, on macOS/Linux/Windows in CI |
+
+These runs keep the code healthy. To prove that a feature or fix works, follow
+the [verify-driver](.agents/skills/verify-driver/SKILL.md) skill before you
+call the work done.
 
 Lint is oxlint ([`.oxlintrc.json`](.oxlintrc.json)), not eslint —
 `@stylistic/eslint-plugin` is only pulled in as an oxlint plugin. Husky runs
 `test:lint` pre-commit and `pnpm test` pre-push; don't bypass either with
 `--no-verify`.
 
+## Do not hand-edit
+
+| Path | Changed by |
+|---|---|
+| `packages/node-*/dist/` | `pnpm run build` |
+| `pnpm-lock.yaml` | `pnpm install` / `pnpm update` |
+| `version` in `packages/node-*/package.json` | the release workflow (release-it) |
+| `packages/node-geckodriver/CHANGELOG.md` | nothing: frozen history; release notes live in GitHub releases |
+
+## CI
+
+[ci.yml](.github/workflows/ci.yml) runs lint, unit and e2e on macOS, Linux and
+Windows. Pull requests run Node 24 only; the required checks are
+`build (<os>, 24)` and EasyCLA. A push to `main` also runs Node 22.19.0 (the
+`engines` floor), 22 and 26, so a floor break shows up only after the merge:
+check that run.
+
 ## Releases
 
-Manual, via the "Manual NPM Publish" GitHub Action
-([.github/workflows/release.yml](.github/workflows/release.yml)) — never
-automatic on merge. It runs `release-it` per package, tags as
-`<driver>@<version>`, and auto-skips packages with no changes since their
-last tag when `driver: all` is selected (picking one driver explicitly always
-releases it). Use `dryRun: yes` to exercise the whole flow without publishing
-or tagging anything for real.
+Manual, via the "Manual NPM Publish" workflow
+([release.yml](.github/workflows/release.yml)), never on merge. Follow the
+[driver-release](.agents/skills/driver-release/SKILL.md) skill.
 
 ## Working agreement
 
