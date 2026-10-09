@@ -99,7 +99,7 @@ By default, binaries download when initialized via CLI or API. To download them 
 
 * **CDN credentials:** a CDN URL can carry them, for example `https://user:password@INTERNAL_CDN`. They are sent as a Basic `Authorization` header and kept out of the logs; percent-encode special characters (`@` is `%40`, `%` is `%25`). Use `https://`: over `http://`, Basic credentials travel in clear text. A redirect to another host does not receive them.
 
-* **HTTP/HTTPS Proxy:** `HTTPS_PROXY` and `HTTP_PROXY` apply to downloads, and `NO_PROXY` lists the hosts that skip the proxy. The lower-case forms work too and win over the upper-case ones.
+* **HTTP/HTTPS Proxy:** `HTTPS_PROXY` and `HTTP_PROXY` apply to downloads, and `NO_PROXY` lists the hosts that skip the proxy. The lower-case forms work too and win over the upper-case ones. A dispatcher set with undici's `setGlobalDispatcher` (as in the [WebdriverIO proxy docs](https://webdriver.io/docs/proxy)) wins over these variables.
 
 #### Windows Setup (`selenium-webdriver` note)
 

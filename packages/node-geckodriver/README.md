@@ -73,7 +73,7 @@ A CDN URL can carry credentials, for example `https://user:password@INTERNAL_CDN
 
 ## Setting a PROXY URL
 
-Use `HTTPS_PROXY` or `HTTP_PROXY` to set your proxy URL, and `NO_PROXY` for the hosts that skip it. The lower-case forms (`https_proxy`, `http_proxy`, `no_proxy`) work too and win over the upper-case ones.
+Use `HTTPS_PROXY` or `HTTP_PROXY` to set your proxy URL, and `NO_PROXY` for the hosts that skip it. The lower-case forms (`https_proxy`, `http_proxy`, `no_proxy`) work too and win over the upper-case ones. A dispatcher set with undici's `setGlobalDispatcher` (as in the [WebdriverIO proxy docs](https://webdriver.io/docs/proxy)) wins over these variables.
 
 # Programmatic Interface
 

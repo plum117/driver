@@ -32,7 +32,7 @@ Drive every row the change can reach.
 | The change affects | Drive | Not the proof |
 |---|---|---|
 | Download, version lookup, CDN env vars, cache dir | The e2e file of that driver: `pnpm --filter e2e exec vitest run tests/<driver>.e2e.test.ts` | A unit test with mocked `fetch` |
-| `HTTPS_PROXY` / `HTTP_PROXY` / `NO_PROXY` | `pnpm --filter e2e exec vitest run tests/proxy.e2e.test.ts` (a local CONNECT proxy records the tunnels) | A unit test that checks the dispatcher |
+| `HTTPS_PROXY` / `HTTP_PROXY` / `NO_PROXY`, `setGlobalDispatcher` | `pnpm --filter e2e exec vitest run tests/proxy.e2e.test.ts` (a local CONNECT proxy records the tunnels) and `tests/globalDispatcher.test.ts` in each package | A unit test that checks the dispatcher |
 | `start()` options or the CLI | The e2e "start ... manually" test, and the bin: `node packages/node-<driver>/bin/<driver>.js --port=4444`, then `curl localhost:4444/status` | Reading `parseParams` output |
 | What WebdriverIO does with the driver (`wdio:*Options`, logging) | The e2e tests that call `remote()`, and `tests/logger.e2e.test.ts` | A `remote()` against a driver you started yourself, when the change is in the path `@wdio/utils` starts |
 | `exports`, `types`, the CJS entry, `files` / `.npmignore`, `LICENSE` | In the package dir: `pnpm run check:pack` (the file list, the source map references, publint and attw), and the CJS interop test in `pnpm --filter <driver> test` | A green build |

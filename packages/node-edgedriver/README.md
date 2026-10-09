@@ -35,7 +35,7 @@ Microsoft Edge WebDriver 105.0.1343.33 (4122bb4646b33f33bca5d269490b9caadfc452b2
 
 # Setting a PROXY URL
 
-Use `HTTPS_PROXY` or `HTTP_PROXY` to set your proxy URL, and `NO_PROXY` for the hosts that skip it. The lower-case forms (`https_proxy`, `http_proxy`, `no_proxy`) work too and win over the upper-case ones.
+Use `HTTPS_PROXY` or `HTTP_PROXY` to set your proxy URL, and `NO_PROXY` for the hosts that skip it. The lower-case forms (`https_proxy`, `http_proxy`, `no_proxy`) work too and win over the upper-case ones. A dispatcher set with undici's `setGlobalDispatcher` (as in the [WebdriverIO proxy docs](https://webdriver.io/docs/proxy)) wins over these variables.
 
 # Programmatic Interface
 
@@ -94,9 +94,9 @@ __Returns:__ `string` - path to Edgedriver binary
 
 ### `findEdgePath`
 
-The `findEdgePath` is a helper method to find the Microsoft Egde binary on given system. If there is a `EDGE_BINARY_PATH` environment set, it will return that value.
+The `findEdgePath` is a helper method to find the Microsoft Edge binary on given system. If there is a `EDGE_BINARY_PATH` environment set, it will return that value.
 
-__Returns:__ `string` - path to Microsoft Edge binary
+__Returns:__ `string | undefined` - path to Microsoft Edge binary, or `undefined` when Edge is not installed
 
 ## CJS Support
 
