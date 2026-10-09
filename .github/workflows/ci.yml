@@ -44,6 +44,11 @@ jobs:
       - name: 📦 Build
         run: pnpm run build
 
+      - name: 📦 Check npm packages
+        # the tarball is the same on every OS
+        if: matrix.os == 'ubuntu-latest'
+        run: pnpm -r run check:pack
+
       - name: 🧪 Run Tests
         run: pnpm test
 
