@@ -1,14 +1,6 @@
 /**
- * a top-level `import type` here would emit a trailing `export {}` marker,
- * breaking this file's CommonJS interop (see dist/cjs/package.json)
+ * Node.js 22.12+ can require() the ESM build synchronously, so CommonJS gets
+ * every export of it. dist/cjs/package.json makes this file CommonJS.
  */
-// oxlint-disable-next-line typescript/consistent-type-imports
-exports.start = async function start (params: import('../types.js').GeckodriverParameters) {
-    const esmPkg = await import('../index.js')
-    return esmPkg.start(params)
-}
-
-exports.download = async function download (geckodriverVersion?: string, cacheDir?: string) {
-    const esmPkg = await import('../index.js')
-    return esmPkg.download(geckodriverVersion, cacheDir)
-}
+// oxlint-disable-next-line typescript/no-require-imports
+module.exports = require('../index.js')
