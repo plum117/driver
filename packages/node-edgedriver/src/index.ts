@@ -7,7 +7,7 @@ import { DEFAULT_ALLOWED_ORIGINS, DEFAULT_ALLOWED_IPS, log } from './constants.j
 import type { EdgedriverParameters } from './types.js'
 
 export async function start (params: EdgedriverParameters) {
-    const { cacheDir, customEdgeDriverPath, ...startArgs } = params
+    const { cacheDir, customEdgeDriverPath, spawnOpts = {}, ...startArgs } = params
     let binaryFilePath = customEdgeDriverPath || process.env.EDGEDRIVER_PATH
     if (!binaryFilePath) {
         binaryFilePath = await downloadDriver(params.edgeDriverVersion, cacheDir)
@@ -22,8 +22,8 @@ export async function start (params: EdgedriverParameters) {
 
     const args = parseParams(startArgs)
     log.info(`Starting EdgeDriver at ${binaryFilePath} with params: ${args.join(' ')}`)
-    const child = cp.spawn(binaryFilePath, args)
-    return new Promise<typeof child>((resolve, reject) => {
+    const child = cp.spawn(binaryFilePath, args, spawnOpts)
+    return new Promise<cp.ChildProcess>((resolve, reject) => {
         child.once('spawn', () => resolve(child))
         child.once('error', (err) => reject(new Error(`Failed to start EdgeDriver: ${err.message}`)))
     })
