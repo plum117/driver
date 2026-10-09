@@ -14,6 +14,27 @@ This monorepo contains Node.js wrappers for managing browser driver binaries ([G
 
 ---
 
+## Compatibility
+
+WebdriverIO installs the driver packages it needs through `@wdio/utils`. If you only use WebdriverIO, you do not install them yourself.
+
+| WebdriverIO | `geckodriver` | `edgedriver` | `safaridriver` | Node.js | `@wdio/logger` |
+| --- | --- | --- | --- | --- | --- |
+| 10 | 8.x | 8.x | 3.x | 22.19.0 or newer | 10, peer dependency |
+| 9 | 6.x or 7.x | 6.x or 7.x | 1.x or 2.x | 20 or newer (`safaridriver`: 18) | 9, dependency |
+
+From geckodriver 8 and edgedriver 8, `@wdio/logger` is a peer dependency, so the drivers use the logger of your WebdriverIO install. A second copy of the logger empties the WebdriverIO log file (`outputDir`).
+
+### Upgrading to geckodriver 8, edgedriver 8 and safaridriver 3
+
+- Use Node.js 22.19.0 or newer.
+- If you use `geckodriver` or `edgedriver` without WebdriverIO and install with Yarn, add `@wdio/logger` to your dependencies. npm and pnpm install it for you.
+- `geckodriver` no longer reads `GECKODRIVER_FILEPATH`. Use `GECKODRIVER_PATH`.
+- `require()` now returns every export of the package, for example `findEdgePath` from `edgedriver`, with CommonJS types.
+- The rest of the API, the CLI and the options did not change.
+
+---
+
 ## Installation
 
 Install the driver package needed for your target browser:
