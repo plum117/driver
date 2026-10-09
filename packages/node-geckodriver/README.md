@@ -109,9 +109,10 @@ const cp = await start({ port: 4444 });
 await waitPort({ port: 4444 });
 
 /**
- * then start WebdriverIO session
+ * then start WebdriverIO session on that port: without `port`, WebdriverIO starts a driver of its own.
+ * Geckodriver accepts `127.0.0.1` but not `localhost` (the default) unless you pass `allowHosts`.
  */
-const browser = await remote({ capabilities: { browserName: 'firefox' } });
+const browser = await remote({ hostname: '127.0.0.1', port: 4444, capabilities: { browserName: 'firefox' } });
 await browser.url('https://webdriver.io');
 console.log(await browser.getTitle()); // prints "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO"
 
@@ -121,7 +122,7 @@ console.log(await browser.getTitle()); // prints "WebdriverIO · Next-gen browse
 cp.kill();
 ```
 
-__Note:__ as you can see in the example above this package does not wait for the driver to be up, you have to manage this yourself through packages like [`wait-on`](https://github.com/jeffbski/wait-on).
+__Note:__ as you can see in the example above this package does not wait for the driver to be up, you have to manage this yourself through packages like [`wait-port`](https://github.com/dwmkerr/wait-port).
 
 ### `download`
 

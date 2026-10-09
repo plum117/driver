@@ -130,7 +130,11 @@ const cp = await start({ port: 4444 });
 await waitPort({ port: 4444 });
 
 // 3. Connect WebdriverIO session
+// without `port`, WebdriverIO starts a driver of its own; geckodriver accepts
+// `127.0.0.1` but not `localhost` (the default) unless you pass `allowHosts`
 const browser = await remote({
+  hostname: '127.0.0.1',
+  port: 4444,
   capabilities: {
     browserName: 'firefox' // or 'MicrosoftEdge'
   }
@@ -149,12 +153,18 @@ cp.kill();
 ```typescript
 import safaridriver from 'safaridriver';
 import { remote } from 'webdriverio';
+import waitPort from 'wait-port';
 
 // 1. Start Safaridriver server
 safaridriver.start({ port: 4444 });
 
-// 2. Connect WebdriverIO session
+// 2. Wait for driver port to open
+await waitPort({ port: 4444 });
+
+// 3. Connect WebdriverIO session
+// without `port`, WebdriverIO starts a driver of its own
 const browser = await remote({
+  port: 4444,
   capabilities: {
     browserName: 'safari'
   }
@@ -163,7 +173,7 @@ const browser = await remote({
 await browser.url('https://webdriver.io');
 console.log(await browser.getTitle());
 
-// 3. Stop Safaridriver process
+// 4. Stop Safaridriver process
 safaridriver.stop();
 
 ```
