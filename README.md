@@ -70,10 +70,9 @@ npx geckodriver --port=4444
 # Start Edgedriver
 npx edgedriver --port=4444
 
-# Start Safaridriver (macOS)
-npx safaridriver --port=4444
-
 ```
+
+The `safaridriver` package has no CLI: Safaridriver is part of macOS, so run `/usr/bin/safaridriver --port=4444` directly (once, run `safaridriver --enable` to allow remote automation).
 
 ### Environment Variables & Global Installation Setup
 
@@ -103,12 +102,15 @@ By default, binaries download when initialized via CLI or API. To download them 
 
 #### Windows Setup (`selenium-webdriver` note)
 
-When installing `geckodriver` or `edgedriver` globally on Windows, `selenium-webdriver` expects the `.exe` extension in PATH. You can create a symlink in your global npm binary directory:
+A global install on Windows adds `geckodriver.cmd` and `edgedriver.cmd` to your `PATH`, but `selenium-webdriver` looks for `geckodriver.exe` and `msedgedriver.exe`. The packages download the binary into their cache folder, not into the package folder: `geckodriver-<version>.exe` in `GECKODRIVER_CACHE_DIR`, `msedgedriver.exe` in `EDGEDRIVER_CACHE_DIR` (both default to the system temporary folder). Set the cache folder, run the driver once, then copy the binary to a folder on your `PATH`:
 
 ```cmd
-mklink %USERPROFILE%\AppData\Roaming\npm\geckodriver.exe %USERPROFILE%\AppData\Roaming\npm\node_modules\geckodriver\geckodriver.exe
-
+set GECKODRIVER_CACHE_DIR=%USERPROFILE%\geckodriver
+geckodriver --version
+copy %GECKODRIVER_CACHE_DIR%\geckodriver-*.exe %APPDATA%\npm\geckodriver.exe
 ```
+
+Recent `selenium-webdriver` versions can also download the drivers themselves with Selenium Manager.
 
 ---
 
