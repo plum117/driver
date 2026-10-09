@@ -272,6 +272,16 @@ test('download with proxy support', async () => {
     }
 })
 
+test('download reports a failed latest-version lookup with its status', async () => {
+    mockFetch.mockResolvedValue({
+        status: 429,
+        statusText: 'Too Many Requests',
+        text: () => Promise.resolve('<html>rate limited</html>'),
+    })
+    await expect(download(undefined, '/tmp/geckodriver-status-test'))
+        .rejects.toThrow('Failed to fetch the latest Geckodriver version (statusCode 429): Too Many Requests')
+})
+
 test('parseParams', () => {
     expect(parseParams({ marionetteHost: 'foobar', allowOrigins: ['123', '321'] }))
         .toMatchSnapshot()
