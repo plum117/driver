@@ -51,7 +51,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # release-it publishes to npm before it pushes the version commit, and only warns when the
+  # push fails, so check push access up front instead of ending with a release that main lacks.
+  preflight:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Check the release token can push to main
+        env:
+          GH_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::WDIO_BOT_GITHUB_TOKEN is not available to ${GITHUB_REPOSITORY}"
+            exit 1
+          fi
+          if [ "$(gh api "repos/${GITHUB_REPOSITORY}" --jq .permissions.push)" != "true" ]; then
+            echo "::error::WDIO_BOT_GITHUB_TOKEN has no write access to ${GITHUB_REPOSITORY}"
+            exit 1
+          fi
+          # a fast-forward commit push only passes these rules; any other rule needs a bypass
+          ids=$(gh api "repos/${GITHUB_REPOSITORY}/rules/branches/main" --jq \
+            '[.[] | select(.type | IN("deletion", "non_fast_forward", "creation", "required_linear_history") | not) | .ruleset_id] | unique | .[]')
+          for id in $ids; do
+            bypass=$(gh api "repos/${GITHUB_REPOSITORY}/rulesets/${id}?includes_parents=true" --jq .current_user_can_bypass)
+            if [ "$bypass" != "always" ]; then
+              echo "::error::WDIO_BOT_GITHUB_TOKEN cannot bypass ruleset ${id} on main (current_user_can_bypass: ${bypass:-none})"
+              exit 1
+            fi
+          done
+          echo "WDIO_BOT_GITHUB_TOKEN can push to main"
+
   prepare:
+    needs: preflight
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.set.outputs.packages }}
@@ -102,11 +133,16 @@ jobs:
     permissions:
         contents: write
         id-token: write
+    env:
+      # the pre-push hook runs every package's tests, but this job only builds one package
+      HUSKY: 0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: 'main'
           fetch-depth: 0
+          # wdio-bot can bypass the main ruleset; GITHUB_TOKEN can't push the version commit
+          token: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
