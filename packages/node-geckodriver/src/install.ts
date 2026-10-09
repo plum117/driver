@@ -49,6 +49,9 @@ export async function download (
      */
     if (!geckodriverVersion) {
         const res = await retryFetch(GECKODRIVER_CARGO_YAML, fetchOpts)
+        if (res.status !== 200) {
+            throw new Error(`Failed to fetch the latest Geckodriver version (statusCode ${res.status}): ${res.statusText}`)
+        }
         const toml = await res.text()
         const version = toml.split('\n').find((l) => l.startsWith('version = '))
         if (!version) {
