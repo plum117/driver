@@ -85,6 +85,18 @@ jobs:
             fi
           done
           echo "WDIO_BOT_GITHUB_TOKEN can push to main"
+      - name: Check the actor can publish
+        env:
+          GH_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
+          ACTOR: ${{ github.triggering_actor }}
+        run: |
+          # a pending invitation also answers 200, so require an active membership
+          state=$(gh api "orgs/webdriverio/teams/project-publishers/memberships/${ACTOR}" --jq .state 2>/dev/null || true)
+          if [ "$state" != "active" ]; then
+            echo "::error::${ACTOR} is not an active member of webdriverio/project-publishers"
+            exit 1
+          fi
+          echo "${ACTOR} can publish"
 
   prepare:
     needs: preflight
