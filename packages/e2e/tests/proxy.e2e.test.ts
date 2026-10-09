@@ -46,7 +46,15 @@ describe('HTTPS_PROXY', () => {
             const script = `const { download } = await import('${driver}'); console.log(await download(undefined, ${JSON.stringify(cacheDir)}))`
             const { stdout } = await promisify(execFile)(process.execPath, ['--input-type=module', '-e', script], {
                 cwd: path.resolve(import.meta.dirname, '..'),
-                env: { ...process.env, HTTPS_PROXY: proxyUrl, HTTP_PROXY: proxyUrl, NO_PROXY: noProxy },
+                // undici reads the lower-case forms first, so set both to override the caller's shell
+                env: {
+                    ...process.env,
+                    HTTPS_PROXY: proxyUrl, HTTP_PROXY: proxyUrl, NO_PROXY: noProxy,
+                    https_proxy: proxyUrl, http_proxy: proxyUrl, no_proxy: noProxy,
+                },
+                // below the 60s test timeout, so a stalled download can't outlive its test
+                timeout: 50_000,
+                killSignal: 'SIGKILL',
             })
             expect(stdout.trim()).toContain(cacheDir)
         } finally {
