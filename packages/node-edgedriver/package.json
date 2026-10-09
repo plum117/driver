@@ -40,7 +40,7 @@
   },
   "scripts": {
     "build": "tsc -b . && node ../../scripts/copy-cjs-pkg.mjs",
-    "clean": "rimraf ./dist",
+    "clean": "rimraf ./dist ./tsconfig.tsbuildinfo",
     "postinstall": "test -f ./dist/install.js && node ./dist/install.js || echo \"Skipping install, project not built!\"",
     "test": "run-s test:*",
     "test:lint": "oxlint .",

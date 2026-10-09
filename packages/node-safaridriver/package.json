@@ -39,7 +39,7 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc -b . && node ../../scripts/copy-cjs-pkg.mjs",
-        "clean": "rimraf ./dist",
+        "clean": "rimraf ./dist ./tsconfig.tsbuildinfo",
         "test": "run-s test:*",
         "test:lint": "oxlint .",
         "test:unit": "vitest run",
