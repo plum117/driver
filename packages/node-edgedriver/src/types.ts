@@ -4,7 +4,7 @@ export type LogLevel = 'ALL' | 'DEBUG' | 'INFO' | 'WARNING' | 'SEVERE' | 'OFF'
 
 export interface EdgedriverParameters {
     /**
-     * Version of Edgedriver to start. See https://msedgedriver.azureedge.net/ for all available versions, platforms and architecture.
+     * Version of Edgedriver to start. See https://msedgedriver.microsoft.com/ for all available versions, platforms and architecture.
      */
     edgeDriverVersion?: string
     /**

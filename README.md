@@ -31,8 +31,13 @@ From geckodriver 8 and edgedriver 8, `@wdio/logger` is a peer dependency, so the
 - If you use `geckodriver` or `edgedriver` without WebdriverIO and install with Yarn, add `@wdio/logger` to your dependencies. npm and pnpm install it for you.
 - `geckodriver` no longer reads `GECKODRIVER_FILEPATH`. Use `GECKODRIVER_PATH`.
 - `require()` now returns every export of the package, for example `findEdgePath` from `edgedriver`, with CommonJS types.
+- With `require('safaridriver')`, `start()` returns the `ChildProcess` and `stop()` returns nothing, as in ESM: before, both returned a Promise. `await start()` still works; `start().then(...)` does not.
+- `HTTPS_PROXY` and `HTTP_PROXY` now apply to downloads; 6.x and 7.x ignored them. If a proxy is set in your environment but the CDN must be reached directly, add its host to `NO_PROXY`.
 - `edgedriver`'s `start()` resolves to a `ChildProcess` (it was typed `ChildProcessWithoutNullStreams`): its `stdout` and `stderr` are `null` when you pass `spawnOpts: { stdio: 'ignore' }`.
-- The rest of the API, the CLI and the options did not change.
+- `safaridriver` now pipes the driver output like the other drivers: read `stdout` and `stderr`, or pass `spawnOpts: { stdio: 'ignore' }`. Before, the output was buffered and the driver was killed after 1 MB of it.
+- The `edgedriver` and `geckodriver` CLIs exit with code 1 when a signal kills the driver; they exited with 0.
+- `findEdgePath()` on Windows returns `undefined` when Edge is not installed, as on macOS and Linux; it threw.
+- `spawnOpts` is a new option of `edgedriver` and `safaridriver`. The rest of the API, the CLI and the options did not change.
 
 ---
 
@@ -84,6 +89,7 @@ By default, binaries download when initialized via CLI or API. To download them 
 * **Custom Driver Version:**
 * `GECKODRIVER_VERSION="0.31.0"`
 * `EDGEDRIVER_VERSION="114.0.1823.18"`
+* `EDGE_BINARY_PATH=/path/to/msedge`: the Edge binary whose version selects the Edgedriver download when `EDGEDRIVER_VERSION` is not set. `findEdgePath()` returns it.
 
 
 * **Custom CDN URL:**
@@ -91,7 +97,9 @@ By default, binaries download when initialized via CLI or API. To download them 
 * `EDGEDRIVER_CDNURL=https://INTERNAL_CDN/edgedriver/download`
 
 
-* **HTTP/HTTPS Proxy:** Standard `HTTP_PROXY` and `HTTPS_PROXY` environment variables are supported for downloads.
+* **CDN credentials:** a CDN URL can carry them, for example `https://user:password@INTERNAL_CDN`. They are sent as a Basic `Authorization` header and kept out of the logs; percent-encode special characters (`@` is `%40`, `%` is `%25`). Use `https://`: over `http://`, Basic credentials travel in clear text. A redirect to another host does not receive them.
+
+* **HTTP/HTTPS Proxy:** `HTTPS_PROXY` and `HTTP_PROXY` apply to downloads, and `NO_PROXY` lists the hosts that skip the proxy. The lower-case forms work too and win over the upper-case ones.
 
 #### Windows Setup (`selenium-webdriver` note)
 
@@ -191,6 +199,7 @@ Passed into the `start(options)` method:
 | `cacheDir` | `string` | `process.env.EDGEDRIVER_CACHE_DIR \|\| os.tmpdir()` | Root directory for caching downloaded binaries. |
 | `allowedIps` | `string[]` | `['']` | List of remote IP addresses allowed to connect. |
 | `allowedOrigins` | `string[]` | `['*']` | List of allowed request origins. Using `*` to allow any origin is dangerous! |
+| `spawnOpts` | `object` | `undefined` | Spawn options passed directly to Node.js `child_process.spawn`, e.g. `{ stdio: 'ignore' }` if you don't read the driver output. |
 
 See the [edgedriver README](packages/node-edgedriver/README.md) for the full list of options.
 
@@ -205,6 +214,7 @@ Passed into `safaridriver.start(options)`:
 | `useTechnologyPreview` | `boolean` | `false` | Enables Safari Technology Preview driver binary. |
 | `enable` | `boolean` | `false` | Configures macOS permissions ("Enable Remote Automation") and exits immediately. |
 | `diagnose` | `boolean` | `false` | Enables diagnostic log output for driver sessions. |
+| `spawnOpts` | `object` | `undefined` | Spawn options passed directly to Node.js `child_process.spawn`, e.g. `{ stdio: 'ignore' }` if you don't read the driver output. |
 
 See the [safaridriver README](packages/node-safaridriver/README.md) for more details.
 

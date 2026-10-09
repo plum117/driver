@@ -10,7 +10,7 @@ import { unpackTar } from 'modern-tar/fs'
 import { BlobReader, BlobWriter, ZipReader, type FileEntry } from '@zip.js/zip.js'
 
 import { BINARY_FILE, GECKODRIVER_CARGO_YAML } from './constants.js'
-import { hasAccess, getDownloadUrl, retryFetch } from './utils.js'
+import { hasAccess, getDownloadUrl, retryFetch, extractBasicAuthFromUrl } from './utils.js'
 
 const log = logger('geckodriver')
 
@@ -72,9 +72,9 @@ export async function download (
     }
 
     const binaryFilePath = path.resolve(cacheDir, getBinaryFilename(geckodriverVersion))
-    const url = getDownloadUrl(geckodriverVersion)
+    const { url, authHeader } = extractBasicAuthFromUrl(getDownloadUrl(geckodriverVersion))
     log.info(`Downloading Geckodriver from ${url}`)
-    const res = await retryFetch(url, fetchOpts)
+    const res = await retryFetch(url, authHeader ? { ...fetchOpts, headers: { Authorization: authHeader } } : fetchOpts)
 
     if (!res.body || res.status !== 200) {
         throw new Error(`Failed to download binary (statusCode ${res.status}): ${res.statusText}`)

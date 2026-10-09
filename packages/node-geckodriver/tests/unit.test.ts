@@ -5,7 +5,7 @@ import { vi, test, expect, describe, beforeEach, afterEach } from 'vitest'
 import { EnvHttpProxyAgent } from 'undici'
 import type * as Undici from 'undici'
 
-import { getDownloadUrl, parseParams, retryFetch } from '../src/utils.js'
+import { getDownloadUrl, parseParams, retryFetch, extractBasicAuthFromUrl } from '../src/utils.js'
 import { getBinaryFilename, download } from '../src/install.js'
 
 // All vi.mock calls must be at module scope so Vitest hoists them before
@@ -295,4 +295,28 @@ test('retryFetch', async () => {
     expect(await retryFetch('foo', { bar: 'baz' } as any)).toBe('foobar')
     expect(mockFetch).toHaveBeenCalledTimes(3)
     expect(mockFetch).toHaveBeenCalledWith('foo', { bar: 'baz' })
+})
+
+describe('extractBasicAuthFromUrl', () => {
+    test('moves decoded credentials into a Basic header', () => {
+        expect(extractBasicAuthFromUrl('https://user:p%40ss@cdn.example.com/v0.36.0/geckodriver.tar.gz')).toEqual({
+            url: 'https://cdn.example.com/v0.36.0/geckodriver.tar.gz',
+            authHeader: `Basic ${Buffer.from('user:p@ss').toString('base64')}`
+        })
+    })
+
+    test('a bare % in a credential is kept as text, not left in the URL', () => {
+        expect(extractBasicAuthFromUrl('https://us%er:p%ss@cdn.example.com/x.zip')).toEqual({
+            url: 'https://cdn.example.com/x.zip',
+            authHeader: `Basic ${Buffer.from('us%er:p%ss').toString('base64')}`
+        })
+    })
+
+    test('keeps a URL without credentials as it is', () => {
+        expect(extractBasicAuthFromUrl('https://cdn.example.com/x.zip')).toEqual({ url: 'https://cdn.example.com/x.zip' })
+    })
+
+    test('keeps a value that is not a URL as it is', () => {
+        expect(extractBasicAuthFromUrl('not-a-url')).toEqual({ url: 'not-a-url' })
+    })
 })
