@@ -7,10 +7,21 @@ import { afterEach, beforeEach, expect, test } from 'vitest'
 import pkg from '../package.json' with { type: 'json' }
 
 /**
- * Runs the real `postinstall` script with npm's default shell: `sh`, or `cmd.exe` on Windows
+ * Runs the real `postinstall` script with npm's default shell: `sh`, or `cmd.exe` on Windows.
+ * PATH has only Node.js and the system tools: a Windows CI runner also has Git's Unix tools
+ * (`test.exe`), which a user's Windows usually has not.
  */
+const PATH = [path.dirname(process.execPath), ...(process.platform === 'win32'
+    ? [path.join(process.env.SystemRoot ?? 'C:\\Windows', 'System32')]
+    : ['/usr/bin', '/bin'])].join(path.delimiter)
 let root = ''
-const postinstall = () => execSync(pkg.scripts.postinstall, { cwd: root, encoding: 'utf8', stdio: 'pipe' })
+const postinstall = () => execSync(pkg.scripts.postinstall, {
+    cwd: root,
+    encoding: 'utf8',
+    stdio: 'pipe',
+    // Windows reads `Path`; one key only, so the restricted value wins
+    env: { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => key.toUpperCase() !== 'PATH')), PATH },
+})
 const writeInstallJs = (body: string) => {
     fs.mkdirSync(path.join(root, 'dist'))
     fs.writeFileSync(path.join(root, 'dist', 'install.js'), body)
