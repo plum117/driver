@@ -126,19 +126,34 @@ function win32() {
 const EXEC_LINE_REGEX = /^Exec=(\/\S+)/gm
 const EDGE_BINARY_NAME_REGEX = /^(microsoft-edge|msedge)/
 
+/**
+ * `*.desktop` files under `dir`, skipping folders that can't be read: one unreadable
+ * subfolder must not stop the search (a recursive `readdirSync` throws on the first one)
+ */
+function listDesktopFiles(dir: string): string[] {
+    let entries: fs.Dirent[]
+    try {
+        entries = fs.readdirSync(dir, { withFileTypes: true })
+    } catch {
+        return []
+    }
+    return entries.flatMap((entry) => {
+        const entryPath = path.join(dir, entry.name)
+        if (entry.isDirectory()) {
+            return listDesktopFiles(entryPath)
+        }
+        return entry.name.endsWith('.desktop') && (entry.isFile() || entry.isSymbolicLink()) ? [entryPath] : []
+    })
+}
+
 function findEdgeExecutables(folder: string) {
     const installations: string[] = []
-    if (!hasAccessSync(folder)) {
-        return installations
-    }
 
     // read the files directly: a shell `grep ... ${folder}` broke on a home folder with a space
-    const desktopFiles = fs.readdirSync(folder, { recursive: true, withFileTypes: true })
-        .filter((entry) => entry.name.endsWith('.desktop') && (entry.isFile() || entry.isSymbolicLink()))
-    for (const entry of desktopFiles) {
+    for (const desktopFile of listDesktopFiles(folder)) {
         let content: string
         try {
-            content = fs.readFileSync(path.join(entry.parentPath, entry.name), 'utf8')
+            content = fs.readFileSync(desktopFile, 'utf8')
         } catch {
             continue
         }
