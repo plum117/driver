@@ -34,7 +34,9 @@
     "postinstall": "test -f ./dist/install.js && node ./dist/install.js || echo \"Skipping install, project not built!\"",
     "test": "run-s build test:*",
     "test:lint": "oxlint .",
-    "test:unit": "vitest --run",
+    "test:typecheck": "tsc -p tsconfig.test.json",
+    "test:unit": "vitest --run --coverage",
+    "check:pack": "node ../../scripts/check-pack.mjs && publint && attw --pack .",
     "watch": "pnpm run build -- --watch"
   },
   "bin": {
@@ -59,7 +61,7 @@
     }
   },
   "dependencies": {
-    "@zip.js/zip.js": "^2.18.2",
+    "@zip.js/zip.js": "^2.23.0",
     "decamelize": "^6.0.1",
     "modern-tar": "^0.8.5",
     "undici": "^8.11.2"

@@ -50,7 +50,7 @@ const withProxyAgent = expect.objectContaining({ dispatcher: expect.any(EnvHttpP
 
 // Set up the mock implementation
 const setupFetchMock = async () => {
-    const apiResponse = await import('./__fixtures__/api.json', { assert: { type: 'json' } })
+    const apiResponse = await import('./__fixtures__/api.json', { with: { type: 'json' } })
     mockFetch.mockImplementation(async (url) => {
         if (url === EDGE_PRODUCTS_API) {
             return {

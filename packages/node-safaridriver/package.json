@@ -44,8 +44,10 @@
         "clean": "rimraf ./dist ./tsconfig.tsbuildinfo",
         "test": "run-s test:*",
         "test:lint": "oxlint .",
-        "test:unit": "vitest run",
+        "test:typecheck": "tsc -p tsconfig.test.json",
+        "test:unit": "vitest run --coverage",
         "test:interop": "node ./tests/interop/cjs.test.js",
+        "check:pack": "node ../../scripts/check-pack.mjs && publint && attw --pack . --ignore-rules false-export-default",
         "watch": "pnpm run build -- --watch"
     }
 }
