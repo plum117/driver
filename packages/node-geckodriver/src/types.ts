@@ -1,8 +1,7 @@
-import type { SpawnOptionsWithoutStdio, SpawnOptionsWithStdioTuple, StdioPipe, StdioNull } from 'node:child_process'
+import type { SpawnOptions } from 'node:child_process'
 
 export type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'config' | 'debug' | 'trace'
 
-type StdioOption = StdioNull | StdioPipe
 export interface GeckodriverParameters {
     /**
      * List of hostnames to allow. By default the value of --host is allowed, and in addition if that's a well
@@ -82,11 +81,12 @@ export interface GeckodriverParameters {
     cacheDir?: string
 
     /**
-     * options to be passed into the process.
+     * Options for `child_process.spawn`. Pass `{ stdio: 'ignore' }` if you don't read the
+     * driver output: an unread pipe fills up and then blocks the driver.
      * @see options in https://nodejs.org/api/child_process.html#child_processspawncommand-args-options
      * @default undefined
      */
-    spawnOpts?: SpawnOptionsWithoutStdio | SpawnOptionsWithStdioTuple<StdioOption, StdioOption, StdioOption>
+    spawnOpts?: SpawnOptions
 }
 
 declare global {

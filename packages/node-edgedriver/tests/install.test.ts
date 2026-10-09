@@ -54,6 +54,8 @@ const setupFetchMock = async () => {
     mockFetch.mockImplementation(async (url) => {
         if (url === EDGE_PRODUCTS_API) {
             return {
+                ok: true,
+                status: 200,
                 json: vi.fn().mockResolvedValue(apiResponse.default)
             }
         } else if (url.includes('LATEST_RELEASE')) {

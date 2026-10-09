@@ -1,3 +1,5 @@
+import type { SpawnOptions } from 'node:child_process'
+
 export type LogLevel = 'ALL' | 'DEBUG' | 'INFO' | 'WARNING' | 'SEVERE' | 'OFF'
 
 export interface EdgedriverParameters {
@@ -10,6 +12,11 @@ export interface EdgedriverParameters {
      * @default process.env.EDGEDRIVER_PATH
      */
     customEdgeDriverPath?: string
+    /**
+     * Options for `child_process.spawn`. Pass `{ stdio: 'ignore' }` if you don't read the
+     * driver output: an unread pipe fills up and then blocks the driver.
+     */
+    spawnOpts?: SpawnOptions
     /**
      * port to listen on
      */
