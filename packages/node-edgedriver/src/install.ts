@@ -58,16 +58,25 @@ export async function download (
     return binaryFilePath
 }
 
+/**
+ * Every CDN request goes through here: fetch rejects a URL with `user:pass@`, so the
+ * credentials of `EDGEDRIVER_CDNURL` move into an Authorization header. `url` has none,
+ * so it is the one to log.
+ */
+function fetchCdn (rawUrl: string) {
+    const { url, authHeader } = extractBasicAuthFromUrl(rawUrl)
+    const opts: RequestInit = { ...fetchOpts }
+    if (authHeader) {
+        opts.headers = { Authorization: authHeader }
+    }
+    return { url, response: fetch(url, opts) }
+}
+
 async function downloadDriver(version: string) {
     try {
-        const rawDownloadUrl = format(DOWNLOAD_URL, version, getNameByArchitecture())
-        const { url: downloadUrl, authHeader } = extractBasicAuthFromUrl(rawDownloadUrl)
+        const { url: downloadUrl, response } = fetchCdn(format(DOWNLOAD_URL, version, getNameByArchitecture()))
         log.info(`Downloading Edgedriver from ${downloadUrl}`)
-        const opts: RequestInit = { ...fetchOpts }
-        if (authHeader) {
-            opts.headers = { ...opts.headers, Authorization: authHeader }
-        }
-        const res = await fetch(downloadUrl, opts)
+        const res = await response
 
         if (!res.body || !res.ok || res.status !== 200) {
             throw new Error(`Failed to download binary from ${downloadUrl} (statusCode ${res.status})`)
@@ -181,7 +190,7 @@ export async function fetchVersion (edgeVersion: string) {
             return productVersion
         }
 
-        const res = await fetch(format(TAGGED_VERSION_URL, edgeVersion.toUpperCase()), fetchOpts)
+        const res = await fetchCdn(format(TAGGED_VERSION_URL, edgeVersion.toUpperCase())).response
         if (res.status !== 200) {
             throw new Error(`Couldn't fetch the latest ${edgeVersion} version (statusCode ${res.status}): ${res.statusText}`)
         }
@@ -195,9 +204,9 @@ export async function fetchVersion (edgeVersion: string) {
     const versionMatch = edgeVersion.match(MATCH_VERSION)
     if (versionMatch) {
         const [major] = versionMatch
-        const url = format(LATEST_RELEASE_URL, major.toString().toUpperCase(), platform.toUpperCase())
+        const { url, response } = fetchCdn(format(LATEST_RELEASE_URL, major.toString().toUpperCase(), platform.toUpperCase()))
         log.info(`Fetching latest version from ${url}`)
-        const res = await fetch(url, fetchOpts)
+        const res = await response
         if (!res.ok || res.status !== 200) {
             throw new Error(`Couldn't detect version for ${edgeVersion}`)
         }

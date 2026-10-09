@@ -135,7 +135,8 @@ export function extractBasicAuthFromUrl(urlString: string): BasicAuthResult {
     try {
         const url = new URL(urlString)
         if (url.username || url.password) {
-            const credentials = btoa(`${url.username}:${url.password}`)
+            // URL keeps them percent-encoded (`p%40ss`); the header needs the real `p@ss`
+            const credentials = Buffer.from(`${decodeURIComponent(url.username)}:${decodeURIComponent(url.password)}`).toString('base64')
             url.username = ''
             url.password = ''
             return {
