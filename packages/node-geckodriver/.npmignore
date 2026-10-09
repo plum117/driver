@@ -5,5 +5,5 @@ coverage
 *.tsbuildinfo
 /.*
 /*.mjs
-/tsconfig.json
+/tsconfig*.json
 CHANGELOG.md

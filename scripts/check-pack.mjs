@@ -10,7 +10,15 @@ const [{ files }] = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json
     shell: process.platform === 'win32',
 }))
 const missing = required.filter((file) => !files.some((entry) => entry.path === file))
-if (missing.length) {
-    console.error(`missing from the npm tarball: ${missing.join(', ')}`)
+// anything else (a new config file, src, tests) must be added to .npmignore or listed here
+const allowed = /^(LICENSE|README\.md|AUTHORS|package\.json|bin\/[^/]+\.js|dist\/.+)$/
+const unexpected = files.map((entry) => entry.path).filter((file) => !allowed.test(file))
+if (missing.length || unexpected.length) {
+    if (missing.length) {
+        console.error(`missing from the npm tarball: ${missing.join(', ')}`)
+    }
+    if (unexpected.length) {
+        console.error(`not expected in the npm tarball: ${unexpected.join(', ')}`)
+    }
     process.exit(1)
 }
