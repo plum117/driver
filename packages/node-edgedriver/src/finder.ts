@@ -11,7 +11,7 @@ import { execSync } from 'node:child_process'
 
 import { getEdgePath } from 'edge-paths'
 
-import { sort, findByWhich, hasAccessSync } from './utils.js'
+import { sort, findByWhich, hasAccessSync, uniq } from './utils.js'
 
 interface ApplicationDataType {
     SPApplicationsDataType: {
@@ -96,10 +96,12 @@ function linux() {
         installations = installations.concat(findEdgeExecutables(folder))
     })
 
-    return findByWhich(
+    // PATH first keeps the result of installs that already worked; .desktop entries are the fallback
+    const whichFinds = findByWhich(
         EDGE_BINARY_NAMES,
         [{ regex: EDGE_REGEX, weight: 51 }]
     )
+    return uniq([...whichFinds, ...installations])
 }
 
 function win32() {
@@ -138,7 +140,8 @@ function win32() {
 
 function findEdgeExecutables(folder: string) {
     const argumentsRegex = /(^[^ ]+).*/ // Take everything up to the first space
-    const edgeExecRegex = '^Exec=/.*/(edge)-.*'
+    // e.g. `Exec=/usr/bin/microsoft-edge-stable %U`
+    const edgeExecRegex = '^Exec=/.*/(microsoft-edge|msedge)'
 
     const installations: string[] = []
     if (hasAccessSync(folder)) {

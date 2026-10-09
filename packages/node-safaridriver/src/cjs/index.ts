@@ -1,11 +1,6 @@
-const start = exports.start = async function (options: never) {
-    const driver = await import('../index.js')
-    return driver.start(options)
-}
-
-const stop = exports.stop = async function () {
-    const driver = await import('../index.js')
-    return driver.stop()
-}
-
-module.exports = { start, stop }
+/**
+ * Node.js 22.12+ can require() the ESM build synchronously, so CommonJS gets
+ * every export of it. dist/cjs/package.json makes this file CommonJS.
+ */
+// oxlint-disable-next-line typescript/no-require-imports
+module.exports = require('../index.js')

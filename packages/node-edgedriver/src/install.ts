@@ -252,7 +252,8 @@ export function isAutoInstallEntrypoint (argv1: string | undefined) {
  * download on install
  */
 if (isAutoInstallEntrypoint(process.argv[1]) && Boolean(process.env.EDGEDRIVER_AUTO_INSTALL)) {
-    await download().then(
+    // no top-level await: it would make `require('edgedriver')` (require(esm)) throw
+    void download().then(
         () => log.info('Success!'),
         (err) => log.error(`Failed to install Edgedriver: ${err.stack}`)
     )
