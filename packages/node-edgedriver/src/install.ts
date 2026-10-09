@@ -5,7 +5,7 @@ import cp from 'node:child_process'
 import { format } from 'node:util'
 
 import { BlobReader, BlobWriter, ZipReader, type FileEntry } from '@zip.js/zip.js'
-import { EnvHttpProxyAgent, fetch, type RequestInit } from 'undici'
+import { EnvHttpProxyAgent, fetch, getGlobalDispatcher, type RequestInit } from 'undici'
 
 import findEdgePath from './finder.js'
 import { TAGGED_VERSIONS, EDGE_PRODUCTS_API, TAGGED_VERSION_URL, LATEST_RELEASE_URL, DOWNLOAD_URL, BINARY_FILE, log } from './constants.js'
@@ -21,8 +21,21 @@ interface ProductAPIResponse {
 }
 
 // undici's own fetch: Node's built-in fetch ignores `agent`, and its bundled undici differs per Node version.
-// The agent reads HTTPS_PROXY / HTTP_PROXY / NO_PROXY (and their lower-case forms).
-const fetchOpts: RequestInit = { dispatcher: new EnvHttpProxyAgent() }
+/**
+ * A dispatcher set with undici's setGlobalDispatcher wins, as it did through Node's fetch in 7.x
+ * (WebdriverIO's proxy docs suggest one). Else the agent reads HTTPS_PROXY / HTTP_PROXY / NO_PROXY
+ * (and their lower-case forms). Read per request: WebdriverIO sets it after this module has loaded.
+ */
+let envProxyAgent: EnvHttpProxyAgent | undefined
+function fetchOpts (): RequestInit {
+    const globalDispatcher = getGlobalDispatcher()
+    // a plain Agent is undici's default
+    if (globalDispatcher.constructor.name !== 'Agent') {
+        return { dispatcher: globalDispatcher }
+    }
+    envProxyAgent ??= new EnvHttpProxyAgent()
+    return { dispatcher: envProxyAgent }
+}
 
 export async function download (
     edgeVersion: string | undefined = process.env.EDGEDRIVER_VERSION,
@@ -65,7 +78,7 @@ export async function download (
  */
 function fetchCdn (rawUrl: string) {
     const { url, authHeader } = extractBasicAuthFromUrl(rawUrl)
-    const opts: RequestInit = { ...fetchOpts }
+    const opts = fetchOpts()
     if (authHeader) {
         opts.headers = { Authorization: authHeader }
     }
@@ -158,7 +171,7 @@ export async function fetchVersion (edgeVersion: string) {
      * if browser version is a tagged version, e.g. stable, beta, dev, canary
      */
     if (TAGGED_VERSIONS.includes(edgeVersion.toLowerCase())) {
-        const products = await fetch(EDGE_PRODUCTS_API, fetchOpts)
+        const products = await fetch(EDGE_PRODUCTS_API, fetchOpts())
             .then(async (res) => {
                 if (!res.ok) {
                     throw new Error(`statusCode ${res.status}`)

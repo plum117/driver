@@ -5,7 +5,7 @@ import fsp, { writeFile } from 'node:fs/promises'
 import zlib from 'node:zlib'
 
 import logger from '@wdio/logger'
-import { EnvHttpProxyAgent, type RequestInit } from 'undici'
+import { EnvHttpProxyAgent, getGlobalDispatcher, type RequestInit } from 'undici'
 import { unpackTar } from 'modern-tar/fs'
 import { BlobReader, BlobWriter, ZipReader, type FileEntry } from '@zip.js/zip.js'
 
@@ -14,8 +14,22 @@ import { hasAccess, getDownloadUrl, retryFetch, extractBasicAuthFromUrl } from '
 
 const log = logger('geckodriver')
 
-// reads HTTPS_PROXY / HTTP_PROXY / NO_PROXY (and their lower-case forms); retryFetch uses undici's own fetch
-const fetchOpts: RequestInit = { dispatcher: new EnvHttpProxyAgent() }
+// retryFetch uses undici's own fetch
+/**
+ * A dispatcher set with undici's setGlobalDispatcher wins, as it did through Node's fetch in 7.x
+ * (WebdriverIO's proxy docs suggest one). Else the agent reads HTTPS_PROXY / HTTP_PROXY / NO_PROXY
+ * (and their lower-case forms). Read per request: WebdriverIO sets it after this module has loaded.
+ */
+let envProxyAgent: EnvHttpProxyAgent | undefined
+function fetchOpts (): RequestInit {
+    const globalDispatcher = getGlobalDispatcher()
+    // a plain Agent is undici's default
+    if (globalDispatcher.constructor.name !== 'Agent') {
+        return { dispatcher: globalDispatcher }
+    }
+    envProxyAgent ??= new EnvHttpProxyAgent()
+    return { dispatcher: envProxyAgent }
+}
 
 // Only allow characters that are safe as a filename segment.
 // Rejects path separators (/ \) and any traversal sequences.
@@ -48,7 +62,7 @@ export async function download (
      * check the versioned cache before hitting the network for the binary.
      */
     if (!geckodriverVersion) {
-        const res = await retryFetch(GECKODRIVER_CARGO_YAML, fetchOpts)
+        const res = await retryFetch(GECKODRIVER_CARGO_YAML, fetchOpts())
         if (res.status !== 200) {
             throw new Error(`Failed to fetch the latest Geckodriver version (statusCode ${res.status}): ${res.statusText}`)
         }
@@ -74,7 +88,7 @@ export async function download (
     const binaryFilePath = path.resolve(cacheDir, getBinaryFilename(geckodriverVersion))
     const { url, authHeader } = extractBasicAuthFromUrl(getDownloadUrl(geckodriverVersion))
     log.info(`Downloading Geckodriver from ${url}`)
-    const res = await retryFetch(url, authHeader ? { ...fetchOpts, headers: { Authorization: authHeader } } : fetchOpts)
+    const res = await retryFetch(url, authHeader ? { ...fetchOpts(), headers: { Authorization: authHeader } } : fetchOpts())
 
     if (!res.body || res.status !== 200) {
         throw new Error(`Failed to download binary (statusCode ${res.status}): ${res.statusText}`)
